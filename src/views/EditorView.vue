@@ -1,17 +1,31 @@
 <template>
-  <BrowserFileProvider
-    @file-loaded="fileAvailable = true"
-  ></BrowserFileProvider>
-  <template v-if="model">
-    <NodeInspector v-if="currentNode" :node="currentNode" :model="model">
-    </NodeInspector>
-  </template>
-  <div v-else-if="loading">Loading...</div>
-  <div v-else>Please load models</div>
+  <div class="editor-view">
+    <BrowserFileProvider
+      class="left"
+      @file-loaded="fileAvailable = true"
+    ></BrowserFileProvider>
+    <template v-if="model">
+      <NodesTextView
+        class="center"
+        :model="model"
+        @node-selected="currentNode = $event"
+      ></NodesTextView>
+      <NodeInspector
+        v-if="currentNode"
+        class="right"
+        :node="currentNode"
+        :model="model"
+      >
+      </NodeInspector>
+    </template>
+    <div v-else-if="loading">Loading...</div>
+    <div v-else>Please load models</div>
+  </div>
 </template>
 <script setup lang="ts">
 import BrowserFileProvider from '@/components/BrowserFileProvider.vue';
 import NodeInspector from '@/components/NodeInspector.vue';
+import NodesTextView from '@/components/NodesTextView.vue';
 import { provideFileStore } from '@/file-store';
 import { createModel, type Model, type PathMusicNode } from '@/model';
 import { parseEvents, parseNodesAndRoutes } from '@/parsers';
@@ -53,3 +67,24 @@ const stopWatching = watch(fileAvailable, () => {
   }
 });
 </script>
+<style scoped>
+.editor-view {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+}
+.editor-view > * {
+  height: 80vh;
+}
+.left {
+  grid-column: 1;
+}
+.center {
+  grid-column: 2;
+}
+.right {
+  grid-column: 3 / 4;
+}
+.center-right {
+  grid-column: 2 / 4;
+}
+</style>
