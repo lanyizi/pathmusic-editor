@@ -2,7 +2,10 @@
   <!-- list properties of PathMusicNode -->
   <div>
     <div>Index: {{ props.node.id }}</div>
-    <div>Music: {{ props.node.musicIndex }}</div>
+    <div>
+      Music: {{ props.node.musicIndex }}
+      <span v-if="musicFileName">[{{ musicFileName }}]</span>
+    </div>
     <section>
       <h2>Branches</h2>
       <ol>
@@ -11,16 +14,19 @@
             ControlMin
             <TextInput v-model="branch.controlmin" />
           </label>
+          <br />
           <label>
             ControlMax
             <TextInput v-model="branch.controlmax" />
           </label>
+          <br />
           <label>
             Destination
             <TextInput v-model="branch.dstnode">
               <RouterLink
                 :to="{ query: createQuery('node', branch.dstnode) }"
-              />
+                >{{ branch.dstnode }}</RouterLink
+              >
             </TextInput>
           </label>
         </li>
@@ -30,7 +36,9 @@
       <h2>From</h2>
       <ol>
         <li v-for="fromNode in sourcesByBranches" :key="fromNode.id">
-          {{ fromNode.id }}
+          <RouterLink :to="{ query: createQuery('node', fromNode.id) }">{{
+            fromNode.id
+          }}</RouterLink>
         </li>
       </ol>
     </section>
@@ -61,5 +69,9 @@ const sourcesByBranches = computed(
 );
 const associatedEvents = computed(
   () => props.model.getNodeAssociatedEvents(props.node.id).value
+);
+
+const musicFileName = computed(() =>
+  props.node.musicIndex > 0 ? `${props.node.musicIndex - 1}.mp3` : null
 );
 </script>

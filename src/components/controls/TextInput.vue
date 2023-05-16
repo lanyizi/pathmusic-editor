@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <span>
     <input
       v-if="editing"
       :type="type"
@@ -7,11 +7,11 @@
       @input="doEmit($event)"
     />
     <slot v-else>{{ modelValue }}</slot>
-    <button @click="editing = !editing">
+    <button class="edit-button" @click="editing = !editing">
       <template v-if="editing">OK</template>
       <template v-else>Edit</template>
     </button>
-  </div>
+  </span>
 </template>
 <script setup lang="ts" generic="T extends number | string">
 import { computed, ref } from 'vue';
@@ -33,3 +33,8 @@ function doEmit(event: Event) {
   emit('update:modelValue', outputValue as T);
 }
 </script>
+<style scoped>
+.edit-button {
+  margin-left: 0.5em;
+}
+</style>
