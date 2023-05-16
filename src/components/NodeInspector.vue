@@ -25,16 +25,16 @@
     <section>
       <h2>From</h2>
       <ol>
-        <li v-for="node in sourcesByBranches" :key="node.id">
-          {{ node.id }}
+        <li v-for="fromNode in sourcesByBranches" :key="fromNode.id">
+          {{ fromNode.id }}
         </li>
       </ol>
     </section>
     <section>
       <h2>Associated Events</h2>
       <ol>
-        <li v-for="node in sourcesByBranches" :key="node.id">
-          {{ node.id }}
+        <li v-for="event in associatedEvents" :key="event.id">
+          {{ event.name }}
         </li>
       </ol>
     </section>
