@@ -1,9 +1,5 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router';
-import { provideFileStore } from '@/file-store';
-import EditorView from '@/views/EditorView.vue';
-
-provideFileStore();
 </script>
 
 <template>

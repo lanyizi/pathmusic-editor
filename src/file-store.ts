@@ -17,7 +17,7 @@ interface FileStore {
 
 const key = Symbol('FileStore') as InjectionKey<FileStore>;
 
-export function provideFileStore() {
+export function provideFileStore(): FileStore {
   const requestedTextFiles = ref<PendingTask<string>[]>([]);
   const requestedBinaryFiles = ref<PendingTask<ArrayBuffer>[]>([]);
   let lastId = 0;
@@ -46,6 +46,7 @@ export function provideFileStore() {
     requestedBinaryFiles,
   };
   provide(key, value);
+  return value;
 }
 
 export function useFileStore() {

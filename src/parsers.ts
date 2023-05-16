@@ -7,11 +7,11 @@ import {
   type PathMusicAction,
 } from '@/model';
 
-export function parseTrack(content: string): PathMusicTrack[] {
+export function parseTracks(content: string): PathMusicTrack[] {
   return eval(content);
 }
 
-export function dumpTrack(tracks: PathMusicTrack[]): string {
+export function dumpTracks(tracks: PathMusicTrack[]): string {
   const allowedKeys: (keyof PathMusicTrack)[] = [
     'path',
     'startingsample',

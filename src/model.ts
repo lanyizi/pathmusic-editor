@@ -100,6 +100,7 @@ export interface Model {
   tracks: PathMusicTrack[];
   nodes: PathMusicNode[];
   events: PathMusicEvent[];
+  variables: [string, number][];
 
   addNode(musicIndex: number, trackId: number): number;
   addNodeBranches(id: number, branch: PathMusicBranch): void;
@@ -113,6 +114,7 @@ export function createModel(
   tracks: PathMusicTrack[],
   nodes: PathMusicNode[],
   events: PathMusicEvent[],
+  variables: [string, number][],
   routers: number[][]
 ): Model {
   const model = reactive({

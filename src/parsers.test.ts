@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import {
-  parseTrack,
-  dumpTrack,
+  parseTracks,
+  dumpTracks,
   parseNodesAndRoutes,
   dumpNodesAndRoutes,
   parseEvents,
@@ -12,7 +12,7 @@ import nodesAndRoutes from '@/assets/tests/nodes.txt?raw';
 import events from '@/assets/tests/events.txt?raw';
 
 test('parseTrack', () => {
-  const dumped = dumpTrack(parseTrack(track));
+  const dumped = dumpTracks(parseTracks(track));
   expect(dumped).toBe(track);
 });
 
@@ -23,7 +23,7 @@ test('parseNodesAndRoutes', () => {
 });
 
 test('parseEvents', () => {
-  const tracks = parseTrack(track);
+  const tracks = parseTracks(track);
   const { nodes } = parseNodesAndRoutes(nodesAndRoutes);
   const parsed = parseEvents(events, tracks, nodes);
   const dumped = dumpEvents(parsed.variables, parsed.events);

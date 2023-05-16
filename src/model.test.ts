@@ -2,7 +2,7 @@ import { createModel } from '@/model';
 import { expect, test } from 'vitest';
 
 test('modelNodeLookup', () => {
-  const model = createModel([], [], [], []);
+  const model = createModel([], [], [], [], []);
 
   const id1 = model.addNode(0, 0);
   const node1 = model.nodes[id1];
