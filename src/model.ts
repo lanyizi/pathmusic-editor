@@ -154,7 +154,10 @@ export function createModel(
     for (const event of model.events) {
       for (const action of event.actions) {
         if (action.type === PathMusicActionType.BranchTo) {
-          results[action.node].push(event);
+          const events = results[action.node];
+          if (events) {
+            events.push(event);
+          }
         }
       }
     }
