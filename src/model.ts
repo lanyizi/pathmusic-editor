@@ -129,7 +129,9 @@ export function createModel(
     const results: PathMusicNode[][] = model.nodes.map(() => []);
     for (const node of model.nodes) {
       for (const branch of node.branches) {
-        results[branch.dstnode].push(node);
+        if (branch.dstnode !== 65535) {
+          results[branch.dstnode].push(node);
+        }
       }
     }
     return results;
