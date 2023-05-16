@@ -9,15 +9,19 @@
         <li v-for="(branch, i) in props.node.branches" :key="i">
           <label>
             ControlMin
-            <input type="number" v-model="branch.controlmin" />
+            <TextInput v-model="branch.controlmin" />
           </label>
           <label>
             ControlMax
-            <input type="number" v-model="branch.controlmax" />
+            <TextInput v-model="branch.controlmax" />
           </label>
           <label>
             Destination
-            <input type="number" v-model="branch.dstnode" />
+            <TextInput v-model="branch.dstnode">
+              <RouterLink
+                :to="{ query: createQuery('node', branch.dstnode) }"
+              />
+            </TextInput>
           </label>
         </li>
       </ol>
@@ -44,18 +48,14 @@
 import { useFileStore } from '@/file-store';
 import { type PathMusicNode, type Model } from '@/model';
 import { computed, type PropType } from 'vue';
+import TextInput from './controls/TextInput.vue';
+import { createQuery } from '@/router/create-query';
 const { requestedBinaryFiles } = useFileStore();
 
-const props = defineProps({
-  node: {
-    type: Object as PropType<PathMusicNode>,
-    required: true,
-  },
-  model: {
-    type: Object as PropType<Model>,
-    required: true,
-  },
-});
+const props = defineProps<{
+  node: PathMusicNode;
+  model: Model;
+}>();
 const sourcesByBranches = computed(
   () => props.model.getSourceNodesByBranches(props.node.id).value
 );

@@ -5,11 +5,7 @@
       @file-loaded="fileAvailable = true"
     ></BrowserFileProvider>
     <template v-if="model">
-      <NodesTextView
-        class="center"
-        :model="model"
-        @node-selected="currentNode = $event"
-      ></NodesTextView>
+      <NodesTextView class="center" :model="model"></NodesTextView>
       <NodeInspector
         v-if="currentNode"
         class="right"
@@ -26,15 +22,22 @@
 import BrowserFileProvider from '@/components/BrowserFileProvider.vue';
 import NodeInspector from '@/components/NodeInspector.vue';
 import NodesTextView from '@/components/NodesTextView.vue';
+import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import { provideFileStore } from '@/file-store';
-import { createModel, type Model, type PathMusicNode } from '@/model';
+import { createModel, type Model } from '@/model';
 import { parseEvents, parseNodesAndRoutes } from '@/parsers';
 import { parseTracks } from '@/parsers';
-import { watch } from 'vue';
+import { computed, watch } from 'vue';
 import { ref } from 'vue';
 
 const fileStore = provideFileStore();
-const currentNode = ref<PathMusicNode | null>(null);
+const currentNodeId = useQueryNumberValue('node', -1);
+const currentNode = computed(() => {
+  console.log('currentNodeId.value', currentNodeId.value);
+  return currentNodeId.value === -1
+    ? null
+    : model.value?.data.nodes[currentNodeId.value] ?? null;
+});
 const model = ref<Model | null>(null);
 const loading = ref(false);
 const fileAvailable = ref(false);
