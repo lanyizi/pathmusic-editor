@@ -88,6 +88,10 @@ function handleFiles(files: FileList) {
 }
 </script>
 <style scoped>
+.drop-zone {
+  border: 4px dashed var(--color-border);
+}
+
 .drag-over {
   background-color: var(--color-background-soft);
 }
