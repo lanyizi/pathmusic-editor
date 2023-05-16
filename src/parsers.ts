@@ -37,6 +37,7 @@ export interface PathMusicNodeParseResult {
 
 type RawPathMusicNode = Omit<PathMusicNode, 'musicIndex' | 'branches'> & {
   index: number;
+  numbranches: number;
 };
 
 export function parseNodesAndRoutes(content: string): PathMusicNodeParseResult {
@@ -54,6 +55,7 @@ export function parseNodesAndRoutes(content: string): PathMusicNodeParseResult {
     } else if ('index' in element) {
       result.nodes.push({
         ...element,
+        id: result.nodes.length,
         musicIndex: element.index,
         branches: [],
       });
@@ -90,7 +92,11 @@ export function dumpNodesAndRoutes(
   let result = '[\n';
   for (let i = 0; i < nodes.length; ++i) {
     const node = nodes[i];
-    const rawNode = { ...node, index: node.musicIndex };
+    const rawNode = {
+      ...node,
+      index: node.musicIndex,
+      numbranches: node.branches.length,
+    };
     const fields = allowedTrackNodeKeys
       .map((key) => `${key}: ${rawNode[key]}`)
       .join(', ');

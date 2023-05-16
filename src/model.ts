@@ -1,3 +1,5 @@
+import { reactive, type ComputedRef, computed } from 'vue';
+
 export interface PathMusicTrack {
   path: string;
   startingsample: number;
@@ -16,7 +18,6 @@ export interface PathMusicNode {
   sectionID: number;
   repeat: number;
   routerID: number;
-  numbranches: number;
   beats: number;
   bars: number;
   partID: number;
@@ -93,4 +94,97 @@ export interface BranchToAction extends BasePathMusicAction {
   ofsection: number;
   immediate: boolean;
   track: number;
+}
+
+export interface Model {
+  tracks: PathMusicTrack[];
+  nodes: PathMusicNode[];
+  events: PathMusicEvent[];
+
+  addNode(musicIndex: number, trackId: number): number;
+  addNodeBranches(id: number, branch: PathMusicBranch): void;
+  addEvent(event: PathMusicEvent): void;
+  getSourceNodesByBranches(id: number): ComputedRef<PathMusicNode[]>;
+  getSourceNodesByRouters(id: number): ComputedRef<PathMusicNode[]>;
+  getNodeAssociatedEvents(id: number): ComputedRef<PathMusicEvent[]>;
+}
+
+export function createModel(
+  tracks: PathMusicTrack[],
+  nodes: PathMusicNode[],
+  events: PathMusicEvent[],
+  routers: number[][]
+): Model {
+  const model = reactive({
+    tracks,
+    nodes,
+    events,
+    routers,
+    addNode(musicIndex: number, trackId: number) {
+      const id = model.nodes.length;
+      model.nodes.push({
+        id,
+        musicIndex,
+        trackID: trackId,
+        sectionID: 0,
+        repeat: 0,
+        routerID: 0,
+        beats: 1,
+        bars: 1,
+        partID: 0,
+        notes: 0,
+        branches: [],
+      });
+      return id;
+    },
+    addEvent(event: PathMusicEvent) {
+      model.events.push(event);
+    },
+    addNodeBranches(id: number, branch: PathMusicBranch) {
+      model.nodes[id].branches.push(branch);
+    },
+    sourceNodesFromBranches: computed(() => {
+      const results: PathMusicNode[][] = model.nodes.map(() => []);
+      for (const node of model.nodes) {
+        for (const branch of node.branches) {
+          results[branch.dstnode].push(node);
+        }
+      }
+      return results;
+    }),
+    sourceNodesFromRouters: computed(() => {
+      const results: PathMusicNode[][] = model.nodes.map(() => []);
+      for (const node of model.nodes) {
+        const router = model.routers[node.routerID - 1];
+        if (!router) {
+          continue;
+        }
+        for (const dstnode of router) {
+          results[dstnode].push(node);
+        }
+      }
+      return results;
+    }),
+    eventsFromNodes: computed(() => {
+      const results: PathMusicEvent[][] = model.nodes.map(() => []);
+      for (const event of model.events) {
+        for (const action of event.actions) {
+          if (action.type === PathMusicActionType.BranchTo) {
+            results[action.node].push(event);
+          }
+        }
+      }
+      return results;
+    }),
+    getSourceNodesByBranches(id: number) {
+      return computed(() => model.sourceNodesFromBranches[id]);
+    },
+    getSourceNodesByRouters(id: number) {
+      return computed(() => model.sourceNodesFromRouters[id]);
+    },
+    getNodeAssociatedEvents(id: number) {
+      return computed(() => model.eventsFromNodes[id]);
+    },
+  });
+  return model;
 }
