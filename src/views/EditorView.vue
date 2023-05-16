@@ -14,7 +14,7 @@
           v-if="displayMode === 'text'"
           :model="model"
         ></NodesTextView>
-        <NodesGraphView />
+        <NodesGraphView v-else />
       </div>
       <NodeInspector
         v-if="currentNode"
@@ -100,8 +100,19 @@ const stopWatching = watch(fileAvailable, () => {
   grid-template-columns: 1fr 2fr 1fr;
 }
 .editor-view > * {
-  height: 100%;
   margin: 0 0.5em;
+}
+.editor-view .center {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: min-content minmax(0, 1fr);
+}
+.editor-view .center > * {
+  grid-row: 2;
+}
+.editor-view .center > select {
+  width: fit-content;
+  grid-row: 1;
 }
 .left {
   grid-column: 1;

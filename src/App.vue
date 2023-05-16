@@ -20,9 +20,9 @@ html {
 }
 
 .container {
-  height: 100%;
-  display: flex;
-  flex-flow: column;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: min-content minmax(0, 1fr);
 }
 
 nav {
@@ -30,11 +30,11 @@ nav {
   font-size: 12px;
   text-align: center;
   margin-top: 2rem;
-  flex: 0 1 auto;
+  grid-row: 1;
 }
 
 .content {
-  flex: 1 1 auto;
+  grid-row: 2;
 }
 
 nav a.router-link-exact-active {
