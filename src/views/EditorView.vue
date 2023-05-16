@@ -5,7 +5,17 @@
       @file-loaded="fileAvailable = true"
     ></BrowserFileProvider>
     <template v-if="model">
-      <NodesTextView class="center" :model="model"></NodesTextView>
+      <div class="center">
+        <select v-model="displayMode">
+          <option value="text">Text View</option>
+          <option value="node-graph">Node Graphs</option>
+        </select>
+        <NodesTextView
+          v-if="displayMode === 'text'"
+          :model="model"
+        ></NodesTextView>
+        <NodesGraphView />
+      </div>
       <NodeInspector
         v-if="currentNode"
         class="right"
@@ -34,6 +44,7 @@
 import BrowserFileProvider from '@/components/BrowserFileProvider.vue';
 import NodeInspector from '@/components/NodeInspector.vue';
 import NodesTextView from '@/components/NodesTextView.vue';
+import NodesGraphView from '@/components/NodesGraphView.vue';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import { provideFileStore } from '@/file-store';
 import { createModel, type Model } from '@/model';
@@ -53,6 +64,7 @@ const currentNode = computed(() => {
 const model = ref<Model | null>(null);
 const loading = ref(false);
 const fileAvailable = ref(false);
+const displayMode = ref<'text' | 'node-graph'>('text');
 
 async function loadModel() {
   model.value = null;
