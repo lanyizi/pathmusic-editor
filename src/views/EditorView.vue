@@ -1,5 +1,7 @@
 <template>
-  <BrowserFileProvider></BrowserFileProvider>
+  <BrowserFileProvider
+    @file-loaded="fileAvailable = true"
+  ></BrowserFileProvider>
   <template v-if="model">
     <NodeInspector v-if="currentNode" :node="currentNode" :model="model">
     </NodeInspector>
@@ -14,12 +16,14 @@ import { provideFileStore } from '@/file-store';
 import { createModel, type Model, type PathMusicNode } from '@/model';
 import { parseEvents, parseNodesAndRoutes } from '@/parsers';
 import { parseTracks } from '@/parsers';
+import { watch } from 'vue';
 import { ref } from 'vue';
 
 const fileStore = provideFileStore();
 const currentNode = ref<PathMusicNode | null>(null);
 const model = ref<Model | null>(null);
 const loading = ref(false);
+const fileAvailable = ref(false);
 
 async function loadModel() {
   model.value = null;
@@ -39,5 +43,13 @@ async function loadModel() {
     loading.value = false;
   }
 }
-loadModel();
+// load model when file is available
+const stopWatching = watch(fileAvailable, () => {
+  if (fileAvailable.value) {
+    stopWatching();
+    if (!model.value) {
+      loadModel();
+    }
+  }
+});
 </script>

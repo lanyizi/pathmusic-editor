@@ -21,9 +21,10 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref, watchEffect } from 'vue';
 import { useFileStore, type PendingTask } from '@/file-store';
-import { computed } from 'vue';
+
+const emit = defineEmits(['file-loaded']);
 
 const dropZone = ref<HTMLElement>(null as unknown as HTMLElement);
 const { requestedTextFiles, requestedBinaryFiles } = useFileStore();
@@ -38,6 +39,21 @@ interface AvailableFile {
 }
 const availableFilesList = ref<AvailableFile[]>([]);
 
+watchEffect(() => {
+  for (const available of availableFilesList.value) {
+    for (const requested of requestedTextFiles.value) {
+      if (requested.path == available.path) {
+        requested.resolve(available.file.text());
+      }
+    }
+    for (const requested of requestedBinaryFiles.value) {
+      if (requested.path == available.path) {
+        requested.resolve(available.file.arrayBuffer());
+      }
+    }
+  }
+});
+
 function handleDragOver(event: DragEvent) {
   event.preventDefault();
   // Add CSS styles to indicate the drop zone is active
@@ -51,6 +67,7 @@ function handleFileDrop(event: DragEvent) {
 
   const files = event.dataTransfer?.files;
   if (files) {
+    emit('file-loaded');
     // Process the dropped files (e.g., upload, preview, etc.)
     handleFiles(files);
   }
