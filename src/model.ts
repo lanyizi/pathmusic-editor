@@ -97,11 +97,12 @@ export interface BranchToAction extends BasePathMusicAction {
 }
 
 export interface Model {
-  tracks: PathMusicTrack[];
-  nodes: PathMusicNode[];
-  events: PathMusicEvent[];
-  variables: [string, number][];
-
+  data: {
+    tracks: PathMusicTrack[];
+    nodes: PathMusicNode[];
+    events: PathMusicEvent[];
+    variables: [string, number][];
+  };
   addNode(musicIndex: number, trackId: number): number;
   addNodeBranches(id: number, branch: PathMusicBranch): void;
   addEvent(event: PathMusicEvent): void;
@@ -122,6 +123,43 @@ export function createModel(
     nodes,
     events,
     routers,
+    variables,
+  });
+  const sourceNodesFromBranches = computed(() => {
+    const results: PathMusicNode[][] = model.nodes.map(() => []);
+    for (const node of model.nodes) {
+      for (const branch of node.branches) {
+        results[branch.dstnode].push(node);
+      }
+    }
+    return results;
+  });
+  const sourceNodesFromRouters = computed(() => {
+    const results: PathMusicNode[][] = model.nodes.map(() => []);
+    for (const node of model.nodes) {
+      const router = model.routers[node.routerID - 1];
+      if (!router) {
+        continue;
+      }
+      for (const dstnode of router) {
+        results[dstnode].push(node);
+      }
+    }
+    return results;
+  });
+  const eventsFromNodes = computed(() => {
+    const results: PathMusicEvent[][] = model.nodes.map(() => []);
+    for (const event of model.events) {
+      for (const action of event.actions) {
+        if (action.type === PathMusicActionType.BranchTo) {
+          results[action.node].push(event);
+        }
+      }
+    }
+    return results;
+  });
+  return {
+    data: model,
     addNode(musicIndex: number, trackId: number) {
       const id = model.nodes.length;
       model.nodes.push({
@@ -145,48 +183,14 @@ export function createModel(
     addNodeBranches(id: number, branch: PathMusicBranch) {
       model.nodes[id].branches.push(branch);
     },
-    sourceNodesFromBranches: computed(() => {
-      const results: PathMusicNode[][] = model.nodes.map(() => []);
-      for (const node of model.nodes) {
-        for (const branch of node.branches) {
-          results[branch.dstnode].push(node);
-        }
-      }
-      return results;
-    }),
-    sourceNodesFromRouters: computed(() => {
-      const results: PathMusicNode[][] = model.nodes.map(() => []);
-      for (const node of model.nodes) {
-        const router = model.routers[node.routerID - 1];
-        if (!router) {
-          continue;
-        }
-        for (const dstnode of router) {
-          results[dstnode].push(node);
-        }
-      }
-      return results;
-    }),
-    eventsFromNodes: computed(() => {
-      const results: PathMusicEvent[][] = model.nodes.map(() => []);
-      for (const event of model.events) {
-        for (const action of event.actions) {
-          if (action.type === PathMusicActionType.BranchTo) {
-            results[action.node].push(event);
-          }
-        }
-      }
-      return results;
-    }),
     getSourceNodesByBranches(id: number) {
-      return computed(() => model.sourceNodesFromBranches[id]);
+      return computed(() => sourceNodesFromBranches.value[id]);
     },
     getSourceNodesByRouters(id: number) {
-      return computed(() => model.sourceNodesFromRouters[id]);
+      return computed(() => sourceNodesFromRouters.value[id]);
     },
     getNodeAssociatedEvents(id: number) {
-      return computed(() => model.eventsFromNodes[id]);
+      return computed(() => eventsFromNodes.value[id]);
     },
-  });
-  return model;
+  };
 }
