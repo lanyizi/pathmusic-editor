@@ -46,13 +46,13 @@ function formatHints(node: Immutable<PathMusicNode>) {
   if (node.musicIndex > 0) {
     superscript += 'M';
   }
-  if (model.getNodeAssociatedEvents(node.id).value.length > 0) {
+  if (model.getNodeAssociatedEvents(node.id).length > 0) {
     superscript += 'E';
   }
-  if (model.getSourceNodesByBranches(node.id).value.length > 1) {
+  if (model.getSourceNodesByBranches(node.id).length > 1) {
     superscript += 'B';
   }
-  if (model.getSourceNodesByRouters(node.id).value.length > 1) {
+  if (model.getSourceNodesByRouters(node.id).length > 1) {
     superscript += 'R';
   }
   if (node.branches.length > 1) {

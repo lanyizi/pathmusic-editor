@@ -1,4 +1,4 @@
-import { type ComputedRef, computed, shallowReactive, type Ref } from 'vue';
+import { computed, shallowReactive, type Ref } from 'vue';
 import type { Immutable } from './immutable';
 
 export interface PathMusicTrack {
@@ -104,7 +104,6 @@ export function copyNode(node: Immutable<PathMusicNode>) {
   };
 }
 
-type ReactiveId = number | Ref<number>;
 export interface Model {
   data: Immutable<{
     tracks: PathMusicTrack[];
@@ -115,9 +114,10 @@ export interface Model {
   addNode(musicIndex: number, trackId: number): number;
   setNode(node: PathMusicNode): Immutable<PathMusicNode>;
   addEvent(event: PathMusicEvent): void;
-  getSourceNodesByBranches(id: ReactiveId): ComputedRef<PathMusicNode[]>;
-  getSourceNodesByRouters(id: ReactiveId): ComputedRef<PathMusicNode[]>;
-  getNodeAssociatedEvents(id: ReactiveId): ComputedRef<PathMusicEvent[]>;
+  getSourceNodesByBranches(id: number): PathMusicNode[];
+  getSourceNodesByRouters(id: number): PathMusicNode[];
+  getNodeAssociatedEvents(id: number): PathMusicEvent[];
+  getBranchDestinationNodes(id: number): PathMusicNode[];
 }
 
 export function createModel(
@@ -127,12 +127,11 @@ export function createModel(
   variables: [string, number][],
   routers: number[][]
 ): Model {
-  function getArrayAt<T>(array: Ref<T[][]>, id: ReactiveId) {
-    const idValue = typeof id === 'number' ? id : id.value;
-    if (!array.value[idValue]) {
+  function getArrayAt<T>(array: Ref<T[][]>, id: number) {
+    if (!array.value[id]) {
       return [];
     }
-    return array.value[idValue];
+    return array.value[id];
   }
 
   const model = shallowReactive({
@@ -210,14 +209,13 @@ export function createModel(
       const newArray = model.events.concat(event);
       model.events = newArray;
     },
-    getSourceNodesByBranches(id) {
-      return computed(() => getArrayAt(sourceNodesFromBranches, id));
-    },
-    getSourceNodesByRouters(id) {
-      return computed(() => getArrayAt(sourceNodesFromRouters, id));
-    },
-    getNodeAssociatedEvents(id) {
-      return computed(() => getArrayAt(eventsFromNodes, id));
-    },
+    getSourceNodesByBranches: (id) => getArrayAt(sourceNodesFromBranches, id),
+    getSourceNodesByRouters: (id) => getArrayAt(sourceNodesFromRouters, id),
+    getNodeAssociatedEvents: (id) => getArrayAt(eventsFromNodes, id),
+    getBranchDestinationNodes: (id) =>
+      (model.nodes[id]?.branches ?? [])
+        .filter((branch) => branch.dstnode !== id)
+        .map(({ dstnode }) => model.nodes[dstnode])
+        .filter((n) => !!n),
   };
 }

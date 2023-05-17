@@ -27,7 +27,7 @@ test('modelNodeLookup', () => {
 
   expect(model.data.nodes[id1].branches[0].dstnode).toEqual(node2.id);
   expect(model.data.nodes[id2].branches.length).toEqual(0);
-  expect(model.getSourceNodesByBranches(node2.id).value[0]).toEqual(newNode1);
+  expect(model.getSourceNodesByBranches(node2.id)[0]).toEqual(newNode1);
 });
 
 test('invalidBranchDstNode', () => {
@@ -48,7 +48,7 @@ test('invalidBranchDstNode', () => {
       },
     ],
   });
-  expect(model.getSourceNodesByBranches(node1.id).value.length).toEqual(0);
+  expect(model.getSourceNodesByBranches(node1.id).length).toEqual(0);
 });
 
 test('invalidEventDstNode', () => {
@@ -79,5 +79,5 @@ test('invalidEventDstNode', () => {
       },
     ],
   });
-  expect(model.getNodeAssociatedEvents(node1.id).value.length).toEqual(1);
+  expect(model.getNodeAssociatedEvents(node1.id).length).toEqual(1);
 });

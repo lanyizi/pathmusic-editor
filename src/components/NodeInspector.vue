@@ -65,8 +65,12 @@ const props = defineProps<{
   model: Model;
 }>();
 const currentNodeId = useQueryNumberValue('node', -1);
-const sourcesByBranches = props.model.getSourceNodesByBranches(currentNodeId);
-const associatedEvents = props.model.getNodeAssociatedEvents(currentNodeId);
+const sourcesByBranches = computed(() =>
+  props.model.getSourceNodesByBranches(currentNodeId.value)
+);
+const associatedEvents = computed(() =>
+  props.model.getNodeAssociatedEvents(currentNodeId.value)
+);
 const node = ref(createCopy());
 watch(currentNodeId, () => {
   // obtain a fresh copy of the node

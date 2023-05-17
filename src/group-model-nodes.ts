@@ -5,13 +5,12 @@ export function groupModelNodes(model: Model) {
   function getPreviousNodes(node: Immutable<PathMusicNode>) {
     return model
       .getSourceNodesByBranches(node.id)
-      .value.filter((n) => n.id !== node.id);
+      .filter((n) => n.id !== node.id);
   }
   function getNextNodes(node: Immutable<PathMusicNode>) {
-    return node.branches
-      .filter((branch) => branch.dstnode !== node.id)
-      .map(({ dstnode }) => model.data.nodes[dstnode])
-      .filter((n) => !!n);
+    return model
+      .getBranchDestinationNodes(node.id)
+      .filter((n) => n.id !== node.id);
   }
 
   const groups: Immutable<PathMusicNode>[][] = model.data.nodes.map(() => []);
