@@ -187,7 +187,12 @@ export function createModel(
   const eventsFromNodes = computed(() => {
     const results: PathMusicEvent[][] = model.nodes.map(() => []);
     for (const event of model.events) {
-      for (const action of event.actions) {
+      const actionStack = [...event.actions];
+      while (actionStack.length > 0) {
+        const action = actionStack.pop()!;
+        if ('actions' in action) {
+          actionStack.push(...action.actions);
+        }
         if (action.type === PathMusicActionType.BranchTo) {
           const events = results[action.node];
           if (events) {

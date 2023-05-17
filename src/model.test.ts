@@ -1,6 +1,11 @@
 import { PathMusicActionType, createModel, type PathMusicEvent } from '@/model';
 import { assert, expect, test } from 'vitest';
 
+import { parseTracks, parseNodesAndRoutes, parseEvents } from '@/parsers';
+import tracks from '@/assets/tests/tracks.txt?raw';
+import nodesAndRoutes from '@/assets/tests/nodes.txt?raw';
+import events from '@/assets/tests/events.txt?raw';
+
 test('modelNodeLookup', () => {
   const model = createModel([], [], [], [], []);
 
@@ -28,6 +33,46 @@ test('modelNodeLookup', () => {
   expect(model.data.nodes[id1].branches[0].dstnode).toEqual(node2.id);
   expect(model.data.nodes[id2].branches.length).toEqual(0);
   expect(model.getSourceNodesByBranches(node2.id)[0]).toEqual(newNode1);
+});
+
+const parsedTracks = parseTracks(tracks);
+const { nodes, routes } = parseNodesAndRoutes(nodesAndRoutes);
+const { events: parsedEvents, variables } = parseEvents(
+  events,
+  parsedTracks,
+  nodes
+);
+const model = createModel(parsedTracks, nodes, parsedEvents, variables, routes);
+
+test('modelNodeLookupReal', () => {
+  for (const node of model.data.nodes) {
+    for (const next of model.getBranchDestinationNodes(node.id)) {
+      const sources = model.getSourceNodesByBranches(next.id);
+      expect(sources).toContain(node);
+    }
+  }
+});
+
+test('modelEventLookupReal', () => {
+  for (const event of model.data.events) {
+    const actionStack = [...event.actions];
+    while (actionStack.length > 0) {
+      const action = actionStack.pop()!;
+      if ('actions' in action) {
+        actionStack.push(...action.actions);
+      }
+      if (action.type === PathMusicActionType.BranchTo) {
+        if (!model.data.nodes[action.node]) {
+          continue;
+        }
+        const events = model.getNodeAssociatedEvents(action.node);
+        expect(
+          events,
+          `event ${event.name} should be associated with node ${action.node}`
+        ).toContain(event);
+      }
+    }
+  }
 });
 
 test('invalidBranchDstNode', () => {
