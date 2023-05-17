@@ -22,15 +22,20 @@
 </template>
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue';
-import { useFileStore, type PendingTask } from '@/file-store';
+import { useFileStore, type PendingReadTask } from '@/file-store';
 
 const emit = defineEmits(['file-loaded']);
 
 const dropZone = ref<HTMLElement>(null as unknown as HTMLElement);
-const { requestedTextFiles, requestedBinaryFiles, requestedResets } =
-  useFileStore();
+const {
+  requestedTextFiles,
+  requestedBinaryFiles,
+  requestedResets,
+  requestedTextSaves,
+  requestedBinarySaves,
+} = useFileStore();
 const requiredFileList = computed(() =>
-  (requestedTextFiles.value as PendingTask<any>[])
+  (requestedTextFiles.value as PendingReadTask<any>[])
     .concat(requestedBinaryFiles.value)
     .map((file) => file.path)
 );
@@ -56,6 +61,18 @@ watchEffect(() => {
         requested.resolve(available.file.arrayBuffer());
       }
     }
+  }
+  for (const requestedTextSave of requestedTextSaves.value) {
+    download(requestedTextSave.data, requestedTextSave.path, 'text/plain');
+    requestedTextSave.resolve(Promise.resolve());
+  }
+  for (const requestedBinarySave of requestedBinarySaves.value) {
+    download(
+      requestedBinarySave.data,
+      requestedBinarySave.path,
+      'application/octet-stream'
+    );
+    requestedBinarySave.resolve(Promise.resolve());
   }
 });
 
@@ -89,6 +106,30 @@ function handleFiles(files: FileList) {
         file,
       },
     ];
+  }
+}
+
+// https://stackoverflow.com/a/30832210/4399840
+function download(data: BlobPart, filename: string, type: string) {
+  const file = new Blob([data], { type });
+  const navigator = window.navigator as Navigator & {
+    msSaveOrOpenBlob?: (blob: Blob, filename: string) => void;
+  };
+  if (navigator.msSaveOrOpenBlob) {
+    // IE10+
+    navigator.msSaveOrOpenBlob(file, filename);
+  } else {
+    // Others
+    const a = document.createElement('a');
+    const url = URL.createObjectURL(file);
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 0);
   }
 }
 </script>
