@@ -12,17 +12,17 @@
         <li v-for="(branch, i) in node.branches" :key="i">
           <label>
             ControlMin
-            <TextInput v-model="branch.controlmin" />
+            <TextInput v-model="branch.controlmin" type="number" />
           </label>
           <br />
           <label>
             ControlMax
-            <TextInput v-model="branch.controlmax" />
+            <TextInput v-model="branch.controlmax" type="number" />
           </label>
           <br />
           <label>
             Destination
-            <TextInput v-model="branch.dstnode">
+            <TextInput v-model="branch.dstnode" type="number">
               <RouterLink
                 :to="{ query: createQuery('node', branch.dstnode) }"
                 >{{ branch.dstnode }}</RouterLink
