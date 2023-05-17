@@ -1,5 +1,5 @@
 import { computed, shallowReactive, type Ref } from 'vue';
-import type { Immutable } from './immutable';
+import type { Immutable } from '@/immutable';
 
 export interface PathMusicTrack {
   path: string;
@@ -104,6 +104,22 @@ export function copyNode(node: Immutable<PathMusicNode>) {
   };
 }
 
+export function copyEvent(event: Immutable<PathMusicEvent>) {
+  function copyAction(action: Immutable<PathMusicAction>): PathMusicAction {
+    if ('actions' in action) {
+      return {
+        ...action,
+        actions: action.actions.map((a) => copyAction(a)),
+      };
+    }
+    return { ...action };
+  }
+  return {
+    ...event,
+    actions: event.actions.map(copyAction),
+  };
+}
+
 export interface Model {
   data: Immutable<{
     tracks: PathMusicTrack[];
@@ -115,10 +131,12 @@ export interface Model {
   addNode(musicIndex: number, trackId: number): number;
   setNode(node: PathMusicNode): Immutable<PathMusicNode>;
   addEvent(event: PathMusicEvent): void;
-  getSourceNodesByBranches(id: number): PathMusicNode[];
-  getSourceNodesByRouters(id: number): PathMusicNode[];
-  getNodeAssociatedEvents(id: number): PathMusicEvent[];
-  getBranchDestinationNodes(id: number): PathMusicNode[];
+  getEvent(id: number | string): Immutable<PathMusicEvent> | null;
+  setEvent(event: PathMusicEvent): Immutable<PathMusicEvent>;
+  getSourceNodesByBranches(id: number): Immutable<PathMusicNode>[];
+  getSourceNodesByRouters(id: number): Immutable<PathMusicNode>[];
+  getNodeAssociatedEvents(id: number): Immutable<PathMusicEvent>[];
+  getBranchDestinationNodes(id: number): Immutable<PathMusicNode>[];
 }
 
 export function createModel(
@@ -209,6 +227,19 @@ export function createModel(
     addEvent(event) {
       const newArray = model.events.concat(event);
       model.events = newArray;
+    },
+    getEvent(id) {
+      if (typeof id === 'string') {
+        return model.events.find((e) => e.name === id) ?? null;
+      }
+      return model.events.find((e) => e.id === id) ?? null;
+    },
+    setEvent(event) {
+      const newArray = model.events.slice();
+      const index = newArray.findIndex((e) => e.id === event.id);
+      newArray[index] = copyEvent(event);
+      model.events = newArray;
+      return newArray[index];
     },
     getSourceNodesByBranches: (id) => getArrayAt(sourceNodesFromBranches, id),
     getSourceNodesByRouters: (id) => getArrayAt(sourceNodesFromRouters, id),
