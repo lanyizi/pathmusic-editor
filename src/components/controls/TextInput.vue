@@ -23,11 +23,29 @@ const props = defineProps<{
   modelValue: T;
   type: 'number' | 'text';
   long?: boolean;
+  state?: 'normal' | 'editing';
 }>();
 const emit = defineEmits<{
   (event: 'update:modelValue', value: T): void;
+  (event: 'state', value: 'normal' | 'editing'): void;
 }>();
-const editing = ref(false);
+const localEditing = ref(false);
+const editing = computed({
+  get() {
+    if (props.state === 'editing') {
+      return true;
+    } else if (props.state === 'normal') {
+      return false;
+    }
+    return localEditing.value;
+  },
+  set(value) {
+    if (props.state !== 'editing' && props.state !== 'normal') {
+      localEditing.value = value;
+    }
+    emit('state', value ? 'editing' : 'normal');
+  },
+});
 const value = ref(props.modelValue);
 const isInputShort = computed(() => !props.long);
 
