@@ -80,7 +80,7 @@ watch(
   node,
   (newValue, oldValue) => {
     if (newValue && newValue === oldValue) {
-      // If new value is same as old value, but it has changed,
+      // If new value is the same instance of old value, but it has changed,
       // then it's changed by us, so we need to update the model.
       // Otherwise, it's changed by the previous watcher (which watches currentNodeId),
       // so we don't need to update the model.
