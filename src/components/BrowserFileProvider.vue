@@ -27,7 +27,8 @@ import { useFileStore, type PendingTask } from '@/file-store';
 const emit = defineEmits(['file-loaded']);
 
 const dropZone = ref<HTMLElement>(null as unknown as HTMLElement);
-const { requestedTextFiles, requestedBinaryFiles } = useFileStore();
+const { requestedTextFiles, requestedBinaryFiles, requestedResets } =
+  useFileStore();
 const requiredFileList = computed(() =>
   (requestedTextFiles.value as PendingTask<any>[])
     .concat(requestedBinaryFiles.value)
@@ -40,6 +41,10 @@ interface AvailableFile {
 const availableFilesList = ref<AvailableFile[]>([]);
 
 watchEffect(() => {
+  for (const resetRequest of requestedResets.value) {
+    availableFilesList.value = [];
+    resetRequest.resolve(Promise.resolve());
+  }
   for (const available of availableFilesList.value) {
     for (const requested of requestedTextFiles.value) {
       if (requested.path == available.path) {
