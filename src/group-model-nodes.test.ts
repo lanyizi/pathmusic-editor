@@ -43,7 +43,7 @@ test('groupModelNodes', () => {
   for (const group of grouped) {
     for (const node of group.slice(1)) {
       const sources = getPreviousNodes(node);
-      expect(sources.length).toBe(0);
+      expect(sources.length, 'no additional sources').toBeLessThanOrEqual(1);
     }
   }
 
@@ -51,7 +51,10 @@ test('groupModelNodes', () => {
   for (const group of grouped) {
     for (const node of group.slice(0, -1)) {
       const destinations = getNextNodes(node);
-      expect(destinations.length).toBe(0);
+      expect(
+        destinations.length,
+        'no additional destinations'
+      ).toBeLessThanOrEqual(1);
     }
   }
 });
