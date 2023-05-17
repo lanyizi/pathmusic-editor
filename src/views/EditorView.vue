@@ -1,8 +1,9 @@
 <template>
   <div class="editor-view">
     <menu class="top left">
-      <button>New</button>
-      <button>Save</button>
+      <button @click="clear">New</button>
+      <button @click="save">Save</button>
+      <button @click="reset">Reset</button>
     </menu>
     <nav class="top right">
       <a href="https://github.com/lanyizi/pathmusic-editor">Source Code</a>
@@ -55,8 +56,14 @@ import NodesGraphView from '@/components/NodesGraphView.vue';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import { provideFileStore } from '@/file-store';
 import { createModel, type Model } from '@/model';
-import { parseEvents, parseNodesAndRoutes } from '@/parsers';
-import { parseTracks } from '@/parsers';
+import {
+  dumpEvents,
+  dumpNodesAndRoutes,
+  dumpTracks,
+  parseEvents,
+  parseNodesAndRoutes,
+  parseTracks,
+} from '@/parsers';
 import { computed, watch } from 'vue';
 import { ref } from 'vue';
 
@@ -69,24 +76,26 @@ const currentNode = computed(() => {
     : model.value?.data.nodes[currentNodeId.value] ?? null;
 });
 const model = ref<Model | null>(null);
+// for discarding changes and reset to original state
+// back to when the files are loaded
+const originalData = ref<[string, string, string] | null>(null);
 const loading = ref(false);
 const fileAvailable = ref(false);
 const displayMode = ref<'text' | 'node-graph'>('text');
 
 async function loadModel() {
   model.value = null;
+  originalData.value = null;
   try {
     loading.value = true;
-    const tracks = parseTracks(await fileStore.loadText('tracks.txt'));
-    const { nodes, routes } = parseNodesAndRoutes(
-      await fileStore.loadText('nodes.txt')
-    );
-    const { events, variables } = parseEvents(
-      await fileStore.loadText('events.txt'),
-      tracks,
-      nodes
-    );
+    const rawTracks = await fileStore.loadText('tracks.txt');
+    const rawNodes = await fileStore.loadText('nodes.txt');
+    const rawEvents = await fileStore.loadText('events.txt');
+    const tracks = parseTracks(rawTracks);
+    const { nodes, routes } = parseNodesAndRoutes(rawNodes);
+    const { events, variables } = parseEvents(rawEvents, tracks, nodes);
     model.value = createModel(tracks, nodes, events, variables, routes);
+    originalData.value = [rawTracks, rawNodes, rawEvents];
   } finally {
     loading.value = false;
   }
@@ -100,6 +109,37 @@ const stopWatching = watch(fileAvailable, () => {
     }
   }
 });
+
+function clear() {
+  fileStore.reset();
+  fileAvailable.value = false;
+  model.value = null;
+}
+
+async function save() {
+  if (!model.value) {
+    return;
+  }
+  const { tracks, nodes, events, variables, routers } = model.value.data;
+  const rawEvents = dumpEvents(variables, events);
+  const rawNodes = dumpNodesAndRoutes(nodes, routers);
+  const rawTracks = dumpTracks(tracks);
+  originalData.value = [rawTracks, rawNodes, rawEvents];
+  await fileStore.saveText('events.txt', rawEvents);
+  await fileStore.saveText('nodes.txt', rawNodes);
+  await fileStore.saveText('tracks.txt', rawTracks);
+}
+
+function reset() {
+  if (!originalData.value) {
+    return;
+  }
+  const [rawTracks, rawNodes, rawEvents] = originalData.value;
+  const tracks = parseTracks(rawTracks);
+  const { nodes, routes } = parseNodesAndRoutes(rawNodes);
+  const { events, variables } = parseEvents(rawEvents, tracks, nodes);
+  model.value = createModel(tracks, nodes, events, variables, routes);
+}
 </script>
 <style scoped>
 .editor-view {

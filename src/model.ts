@@ -110,6 +110,7 @@ export interface Model {
     nodes: PathMusicNode[];
     events: PathMusicEvent[];
     variables: [string, number][];
+    routers: number[][];
   }>;
   addNode(musicIndex: number, trackId: number): number;
   setNode(node: PathMusicNode): Immutable<PathMusicNode>;
