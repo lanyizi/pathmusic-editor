@@ -55,7 +55,7 @@
 <script setup lang="ts">
 import { useFileStore } from '@/file-store';
 import { type PathMusicNode, type Model } from '@/model';
-import { computed, type PropType } from 'vue';
+import { computed } from 'vue';
 import TextInput from './controls/TextInput.vue';
 import { createQuery } from '@/router/create-query';
 const { requestedBinaryFiles } = useFileStore();
