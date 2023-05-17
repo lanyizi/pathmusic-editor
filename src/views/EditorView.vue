@@ -8,12 +8,12 @@
     <nav class="top right">
       <a href="https://github.com/lanyizi/pathmusic-editor">Source Code</a>
     </nav>
-    <div class="left tall">Placeholder for event list</div>
     <template v-if="model">
       <select class="top center" v-model="displayMode">
         <option value="text">Text View</option>
         <option value="node-graph">Node Graphs</option>
       </select>
+      <EventInspector class="left tall graph-view" :model="model" />
       <NodesTextView
         v-if="displayMode === 'text'"
         class="center text-view"
@@ -66,6 +66,7 @@ import {
 } from '@/parsers';
 import { computed, watch } from 'vue';
 import { ref } from 'vue';
+import EventInspector from '@/components/EventInspector.vue';
 
 const fileStore = provideFileStore();
 const currentNodeId = useQueryNumberValue('node', -1);

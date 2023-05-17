@@ -36,9 +36,9 @@
       <h2>From</h2>
       <ol>
         <li v-for="fromNode in sourcesByBranches" :key="fromNode.id">
-          <RouterLink :to="{ query: createQuery('node', fromNode.id) }">{{
-            fromNode.id
-          }}</RouterLink>
+          <RouterLink :to="{ query: createQuery('node', fromNode.id) }">
+            {{ fromNode.id }}
+          </RouterLink>
         </li>
       </ol>
     </section>
@@ -46,7 +46,9 @@
       <h2>Associated Events</h2>
       <ol>
         <li v-for="event in associatedEvents" :key="event.id">
-          {{ event.name }}
+          <RouterLink :to="{ query: createQuery('event', event.id) }">
+            {{ event.name }}
+          </RouterLink>
         </li>
       </ol>
     </section>
@@ -55,7 +57,7 @@
 <script setup lang="ts">
 import { useFileStore } from '@/file-store';
 import { type Model, copyNode } from '@/model';
-import { computed, ref, watch, watchEffect } from 'vue';
+import { computed, ref, watch } from 'vue';
 import TextInput from './controls/TextInput.vue';
 import { createQuery } from '@/router/create-query';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
