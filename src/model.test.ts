@@ -14,15 +14,20 @@ test('modelNodeLookup', () => {
   expect(id2).toBe(1);
   expect(node2.id).toBe(id2);
 
-  model.addNodeBranches(node1.id, {
-    dstnode: id2,
-    controlmin: 0,
-    controlmax: 127,
+  const newNode1 = model.setNode({
+    ...node1,
+    branches: [
+      {
+        dstnode: id2,
+        controlmin: 0,
+        controlmax: 127,
+      },
+    ],
   });
 
   expect(model.data.nodes[id1].branches[0].dstnode).toEqual(node2.id);
   expect(model.data.nodes[id2].branches.length).toEqual(0);
-  expect(model.getSourceNodesByBranches(node2.id).value[0]).toEqual(node1);
+  expect(model.getSourceNodesByBranches(node2.id).value[0]).toEqual(newNode1);
 });
 
 test('invalidBranchDstNode', () => {
@@ -33,10 +38,15 @@ test('invalidBranchDstNode', () => {
   expect(id1).toBe(0);
   expect(node1.id).toBe(id1);
 
-  model.addNodeBranches(node1.id, {
-    dstnode: 65535,
-    controlmin: 0,
-    controlmax: 127,
+  model.setNode({
+    ...node1,
+    branches: [
+      {
+        dstnode: 65535,
+        controlmin: 0,
+        controlmax: 127,
+      },
+    ],
   });
   expect(model.getSourceNodesByBranches(node1.id).value.length).toEqual(0);
 });

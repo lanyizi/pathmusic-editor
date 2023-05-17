@@ -1,4 +1,5 @@
-import { reactive, type ComputedRef, computed } from 'vue';
+import { type ComputedRef, computed, shallowReactive, type Ref } from 'vue';
+import type { Immutable } from './immutable';
 
 export interface PathMusicTrack {
   path: string;
@@ -96,19 +97,27 @@ export interface BranchToAction extends BasePathMusicAction {
   track: number;
 }
 
+export function copyNode(node: Immutable<PathMusicNode>) {
+  return {
+    ...node,
+    branches: node.branches.map((b) => ({ ...b })),
+  };
+}
+
+type ReactiveId = number | Ref<number>;
 export interface Model {
-  data: {
+  data: Immutable<{
     tracks: PathMusicTrack[];
     nodes: PathMusicNode[];
     events: PathMusicEvent[];
     variables: [string, number][];
-  };
+  }>;
   addNode(musicIndex: number, trackId: number): number;
-  addNodeBranches(id: number, branch: PathMusicBranch): void;
+  setNode(node: PathMusicNode): Immutable<PathMusicNode>;
   addEvent(event: PathMusicEvent): void;
-  getSourceNodesByBranches(id: number): ComputedRef<PathMusicNode[]>;
-  getSourceNodesByRouters(id: number): ComputedRef<PathMusicNode[]>;
-  getNodeAssociatedEvents(id: number): ComputedRef<PathMusicEvent[]>;
+  getSourceNodesByBranches(id: ReactiveId): ComputedRef<PathMusicNode[]>;
+  getSourceNodesByRouters(id: ReactiveId): ComputedRef<PathMusicNode[]>;
+  getNodeAssociatedEvents(id: ReactiveId): ComputedRef<PathMusicEvent[]>;
 }
 
 export function createModel(
@@ -118,7 +127,15 @@ export function createModel(
   variables: [string, number][],
   routers: number[][]
 ): Model {
-  const model = reactive({
+  function getArrayAt<T>(array: Ref<T[][]>, id: ReactiveId) {
+    const idValue = typeof id === 'number' ? id : id.value;
+    if (!array.value[idValue]) {
+      return [];
+    }
+    return array.value[idValue];
+  }
+
+  const model = shallowReactive({
     tracks,
     nodes,
     events,
@@ -165,9 +182,9 @@ export function createModel(
   });
   return {
     data: model,
-    addNode(musicIndex: number, trackId: number) {
+    addNode(musicIndex, trackId) {
       const id = model.nodes.length;
-      model.nodes.push({
+      const newArray = model.nodes.concat({
         id,
         musicIndex,
         trackID: trackId,
@@ -180,22 +197,27 @@ export function createModel(
         notes: 0,
         branches: [],
       });
+      model.nodes = newArray;
       return id;
     },
-    addEvent(event: PathMusicEvent) {
-      model.events.push(event);
+    setNode(node) {
+      const newArray = model.nodes.slice();
+      newArray[node.id] = copyNode(node);
+      model.nodes = newArray;
+      return newArray[node.id];
     },
-    addNodeBranches(id: number, branch: PathMusicBranch) {
-      model.nodes[id].branches.push(branch);
+    addEvent(event) {
+      const newArray = model.events.concat(event);
+      model.events = newArray;
     },
-    getSourceNodesByBranches(id: number) {
-      return computed(() => sourceNodesFromBranches.value[id]);
+    getSourceNodesByBranches(id) {
+      return computed(() => getArrayAt(sourceNodesFromBranches, id));
     },
-    getSourceNodesByRouters(id: number) {
-      return computed(() => sourceNodesFromRouters.value[id]);
+    getSourceNodesByRouters(id) {
+      return computed(() => getArrayAt(sourceNodesFromRouters, id));
     },
-    getNodeAssociatedEvents(id: number) {
-      return computed(() => eventsFromNodes.value[id]);
+    getNodeAssociatedEvents(id) {
+      return computed(() => getArrayAt(eventsFromNodes, id));
     },
   };
 }
