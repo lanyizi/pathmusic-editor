@@ -1,6 +1,11 @@
 <template>
   <span>
-    <input v-if="editing" :type="type" v-model="value" />
+    <input
+      v-if="editing"
+      :type="type"
+      v-model="value"
+      :class="{ short: isInputShort }"
+    />
     <slot v-else>{{ modelValue }}</slot>
     <button v-if="!editing" key="Edit" class="edit-button" @click="edit">
       Edit
@@ -12,17 +17,19 @@
   </span>
 </template>
 <script setup lang="ts" generic="T extends number | string">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
   modelValue: T;
   type: 'number' | 'text';
+  long?: boolean;
 }>();
 const emit = defineEmits<{
   (event: 'update:modelValue', value: T): void;
 }>();
 const editing = ref(false);
 const value = ref(props.modelValue);
+const isInputShort = computed(() => !props.long);
 
 let lastChange = performance.now();
 function isFrequentChange() {
@@ -66,5 +73,8 @@ function cancel() {
 <style scoped>
 .edit-button {
   margin-left: 0.5em;
+}
+input.short {
+  width: 5em;
 }
 </style>
