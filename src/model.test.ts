@@ -1,5 +1,5 @@
-import { PathMusicActionType, createModel } from '@/model';
-import { expect, test } from 'vitest';
+import { PathMusicActionType, createModel, type PathMusicEvent } from '@/model';
+import { assert, expect, test } from 'vitest';
 
 test('modelNodeLookup', () => {
   const model = createModel([], [], [], [], []);
@@ -80,4 +80,106 @@ test('invalidEventDstNode', () => {
     ],
   });
   expect(model.getNodeAssociatedEvents(node1.id).length).toEqual(1);
+});
+
+test('avoidAccidentalNodeChanges', () => {
+  const model = createModel([], [], [], [], []);
+
+  const id1 = model.addNode(0, 0);
+  const node1 = model.data.nodes[id1];
+  expect(id1).toBe(0);
+  expect(node1.id).toBe(id1);
+
+  const nodeData = {
+    ...node1,
+    branches: [
+      {
+        dstnode: id1,
+        controlmin: 0,
+        controlmax: 127,
+      },
+    ],
+  };
+  const newNode1 = model.setNode(nodeData);
+  expect(model.data.nodes[id1].branches.length).toEqual(1);
+
+  nodeData.branches[0].dstnode = 65535;
+  expect(newNode1.branches[0].dstnode).toEqual(id1);
+  nodeData.branches = [];
+  expect(newNode1.branches.length).toEqual(1);
+});
+
+test('avoidAccidentalEventChanges', () => {
+  const model = createModel([], [], [], [], []);
+
+  const id1 = model.addNode(0, 0);
+  const id2 = model.addNode(0, 0);
+
+  const eventData: PathMusicEvent = {
+    name: 'Test_0x1',
+    id: 1,
+    actions: [
+      {
+        type: PathMusicActionType.BranchTo,
+        node: id1,
+        ofsection: 0,
+        immediate: false,
+        track: 0,
+      },
+      {
+        type: PathMusicActionType.If,
+        condition: '',
+        actions: [
+          {
+            type: PathMusicActionType.If,
+            condition: '',
+            actions: [
+              {
+                type: PathMusicActionType.BranchTo,
+                node: id2,
+                ofsection: 0,
+                immediate: false,
+                track: 0,
+              },
+            ],
+            track: 0,
+          },
+          {
+            type: PathMusicActionType.EndIf,
+          },
+        ],
+        track: 0,
+      },
+      {
+        type: PathMusicActionType.EndIf,
+      },
+    ],
+  };
+  const event = model.addEvent(eventData);
+  expect(event.actions.length).toEqual(3);
+
+  assert(event.actions[0].type === PathMusicActionType.BranchTo);
+  assert(eventData.actions[0].type === PathMusicActionType.BranchTo);
+  eventData.actions[0].node = id2;
+  expect(event.actions[0].node).toEqual(id1);
+
+  assert(event.actions[1].type === PathMusicActionType.If);
+  assert(eventData.actions[1].type === PathMusicActionType.If);
+  assert(event.actions[1].actions[0].type === PathMusicActionType.If);
+  assert(eventData.actions[1].actions[0].type === PathMusicActionType.If);
+  assert(
+    event.actions[1].actions[0].actions[0].type === PathMusicActionType.BranchTo
+  );
+  assert(
+    eventData.actions[1].actions[0].actions[0].type ===
+      PathMusicActionType.BranchTo
+  );
+  eventData.actions[1].actions[0].actions[0].node = id1;
+  expect(event.actions[1].actions[0].actions[0].node).toEqual(id2);
+
+  eventData.actions[1].actions = [];
+  expect(event.actions[1].actions.length).toEqual(2);
+
+  eventData.actions = [];
+  expect(event.actions.length).toEqual(3);
 });

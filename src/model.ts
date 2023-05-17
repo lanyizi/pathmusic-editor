@@ -130,7 +130,7 @@ export interface Model {
   }>;
   addNode(musicIndex: number, trackId: number): number;
   setNode(node: PathMusicNode): Immutable<PathMusicNode>;
-  addEvent(event: PathMusicEvent): void;
+  addEvent(event: PathMusicEvent): Immutable<PathMusicEvent>;
   getEvent(id: number | string): Immutable<PathMusicEvent> | null;
   setEvent(event: PathMusicEvent): Immutable<PathMusicEvent>;
   getSourceNodesByBranches(id: number): Immutable<PathMusicNode>[];
@@ -225,8 +225,9 @@ export function createModel(
       return newArray[node.id];
     },
     addEvent(event) {
-      const newArray = model.events.concat(event);
+      const newArray = model.events.concat(copyEvent(event));
       model.events = newArray;
+      return newArray.slice(-1)[0];
     },
     getEvent(id) {
       if (typeof id === 'string') {
