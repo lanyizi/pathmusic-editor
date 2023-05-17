@@ -6,12 +6,13 @@ import {
   PathMusicActionType,
   type PathMusicAction,
 } from '@/model';
+import type { Immutable } from '@/immutable';
 
 export function parseTracks(content: string): PathMusicTrack[] {
   return eval(content);
 }
 
-export function dumpTracks(tracks: PathMusicTrack[]): string {
+export function dumpTracks(tracks: Immutable<PathMusicTrack[]>): string {
   const allowedKeys: (keyof PathMusicTrack)[] = [
     'path',
     'startingsample',
@@ -69,8 +70,8 @@ export function parseNodesAndRoutes(content: string): PathMusicNodeParseResult {
 }
 
 export function dumpNodesAndRoutes(
-  nodes: PathMusicNode[],
-  routes: number[][]
+  nodes: Immutable<PathMusicNode[]>,
+  routes: Immutable<number[][]>
 ): string {
   const allowedTrackNodeKeys: (keyof RawPathMusicNode)[] = [
     'index',
@@ -340,8 +341,8 @@ event: {
 }
 
 export function dumpEvents(
-  variables: [string, number][],
-  events: PathMusicEvent[]
+  variables: Immutable<[string, number][]>,
+  events: Immutable<PathMusicEvent[]>
 ): string {
   const result = [];
   result.push('vars: {');
