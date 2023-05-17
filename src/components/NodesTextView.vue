@@ -1,26 +1,32 @@
 <template>
   <div class="nodes-view">
-    <div v-for="(group, i) in nodeGroups" :key="i">
+    <template v-for="({ group, selected }, i) in nodeGroups" :key="i">
       <hr v-if="i > 0" />
-      <span v-for="({ id, superscript, subscript }, j) in group" :key="id">
-        <span v-if="j > 0"> → </span>
-        <RouterLink :to="{ query: createQuery('node', id) }"
-          ><span class="superscript-subscript"
-            ><span>{{ id }}</span
-            ><sup>{{ superscript }}</sup
-            ><sub>{{ subscript }}</sub></span
-          ></RouterLink
-        ></span
-      >
-    </div>
+      <div :class="{ 'group-selected': selected }">
+        <span v-for="(data, j) in group" :key="data.id">
+          <span v-if="j > 0"> → </span>
+          <RouterLink
+            :class="{ 'node-selected': data.selected }"
+            :to="{ query: createQuery('node', data.id) }"
+            ><span class="superscript-subscript"
+              ><span>{{ data.id }}</span
+              ><sup>{{ data.superscript }}</sup
+              ><sub>{{ data.subscript }}</sub></span
+            ></RouterLink
+          ></span
+        >
+      </div>
+    </template>
   </div>
 </template>
 <script setup lang="ts">
+import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import { type Model, type PathMusicNode } from '@/model';
 import { createQuery } from '@/router/create-query';
 import { computed } from 'vue';
 
 const props = defineProps<{ model: Model }>();
+const selectedId = useQueryNumberValue('node', -1);
 const nodeGroups = computed(() => {
   function getPreviousNodes(node: PathMusicNode) {
     return model
@@ -85,8 +91,8 @@ const nodeGroups = computed(() => {
   }
   return groups
     .filter((group) => group.length > 0)
-    .map((group) =>
-      group.map((node) => {
+    .map((group) => {
+      const nodes = group.map((node) => {
         let superscript = '';
         let subscript = '';
         if (node.musicIndex > 0) {
@@ -111,15 +117,28 @@ const nodeGroups = computed(() => {
           id: node.id,
           superscript,
           subscript,
+          selected: node.id === selectedId.value,
         };
-      })
-    );
+      });
+      return {
+        group: nodes,
+        selected: nodes.some((d) => d.selected),
+      };
+    });
 });
 </script>
 <style scoped>
 .nodes-view {
   /* scrollable */
   overflow-y: auto;
+}
+
+.group-selected {
+  background-color: var(--color-background-mute);
+}
+
+.node-selected {
+  background-color: var(--color-background-link-highlight);
 }
 
 /* https://stackoverflow.com/questions/3742975/subscript-and-superscript-for-the-same-element */
