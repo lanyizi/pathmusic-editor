@@ -1,6 +1,6 @@
-# pathmusic-editor
+# RA3 PathMusic Editor
 
-This template should help get you started developing with Vue 3 in Vite.
+Based on work of https://github.com/utunnels/ra3pathmusic
 
 ## Recommended IDE Setup
 
@@ -42,11 +42,11 @@ yarn build
 ### Run Unit Tests with [Vitest](https://vitest.dev/)
 
 ```sh
-npm test:unit
+yarn test:unit
 ```
 
 ### Lint with [ESLint](https://eslint.org/)
 
 ```sh
-npm run lint
+yarn lint
 ```
