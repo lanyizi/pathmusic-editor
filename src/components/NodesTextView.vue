@@ -21,111 +21,53 @@
 </template>
 <script setup lang="ts">
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
+import { groupModelNodes } from '@/group-model-nodes';
+import type { Immutable } from '@/immutable';
 import { type Model, type PathMusicNode } from '@/model';
 import { createQuery } from '@/router/create-query';
 import { computed } from 'vue';
 
 const props = defineProps<{ model: Model }>();
 const selectedId = useQueryNumberValue('node', -1);
-const nodeGroups = computed(() => {
-  function getPreviousNodes(node: PathMusicNode) {
-    return model
-      .getSourceNodesByBranches(node.id)
-      .value.filter((n) => n.id !== node.id);
-  }
-  function getNextNodes(node: PathMusicNode) {
-    return node.branches
-      .filter((branch) => branch.dstnode !== node.id)
-      .map(({ dstnode }) => model.data.nodes[dstnode])
-      .filter((n) => !!n);
-  }
+const nodeGroups = computed(() =>
+  groupModelNodes(props.model).map((group) => {
+    const formattedGroup = group.map(formatHints);
+    return {
+      group: formattedGroup,
+      selected: formattedGroup.some((data) => data.selected),
+    };
+  })
+);
 
-  const { model } = props;
-  const groups: PathMusicNode[][] = model.data.nodes.map(() => []);
-  const processed = model.data.nodes.map(() => false);
-  for (const node of model.data.nodes) {
-    if (processed[node.id]) {
-      continue;
-    }
-    const group = [node];
-    processed[node.id] = true;
-    const ancestorsQueue = [...getPreviousNodes(node)];
-    while (ancestorsQueue.length === 1) {
-      const previous = ancestorsQueue.shift()!;
-      if (processed[previous.id]) {
-        // console.log('circular reference detected', node.id, previous.id);
-        break;
-      }
-      if (getNextNodes(previous).length > 1) {
-        // console.log('branching detected', node.id, previous.id);
-        break;
-      }
-      group.unshift(previous);
-      processed[previous.id] = true;
-      ancestorsQueue.push(...getPreviousNodes(previous));
-    }
-    const descendantsQueue = [...getNextNodes(node)];
-    while (descendantsQueue.length === 1) {
-      const next = descendantsQueue.shift()!;
-      if (processed[next.id]) {
-        // console.log('circular reference detected', node.id, next.id);
-        break;
-      }
-      if (getPreviousNodes(next).length > 1) {
-        // console.log('branching detected', node.id, next.id);
-        break;
-      }
-      group.push(next);
-      processed[next.id] = true;
-      descendantsQueue.push(...getNextNodes(next));
-    }
-    groups[group[0].id] = group;
+function formatHints(node: Immutable<PathMusicNode>) {
+  const model = props.model;
+  let superscript = '';
+  let subscript = '';
+  if (node.musicIndex > 0) {
+    superscript += 'M';
   }
-  for (const node of model.data.nodes) {
-    if (processed[node.id]) {
-      continue;
-    }
-    console.warn('unprocessed node', node);
-    groups[node.id] = [node];
-    processed[node.id] = true;
+  if (model.getNodeAssociatedEvents(node.id).value.length > 0) {
+    superscript += 'E';
   }
-  return groups
-    .filter((group) => group.length > 0)
-    .map((group) => {
-      const nodes = group.map((node) => {
-        let superscript = '';
-        let subscript = '';
-        if (node.musicIndex > 0) {
-          superscript += 'M';
-        }
-        if (model.getNodeAssociatedEvents(node.id).value.length > 0) {
-          superscript += 'E';
-        }
-        if (model.getSourceNodesByBranches(node.id).value.length > 1) {
-          superscript += 'B';
-        }
-        if (model.getSourceNodesByRouters(node.id).value.length > 1) {
-          superscript += 'R';
-        }
-        if (node.branches.length > 1) {
-          subscript += 'B';
-        }
-        if (node.routerID > 0) {
-          subscript += 'R';
-        }
-        return {
-          id: node.id,
-          superscript,
-          subscript,
-          selected: node.id === selectedId.value,
-        };
-      });
-      return {
-        group: nodes,
-        selected: nodes.some((d) => d.selected),
-      };
-    });
-});
+  if (model.getSourceNodesByBranches(node.id).value.length > 1) {
+    superscript += 'B';
+  }
+  if (model.getSourceNodesByRouters(node.id).value.length > 1) {
+    superscript += 'R';
+  }
+  if (node.branches.length > 1) {
+    subscript += 'B';
+  }
+  if (node.routerID > 0) {
+    subscript += 'R';
+  }
+  return {
+    id: node.id,
+    superscript,
+    subscript,
+    selected: node.id === selectedId.value,
+  };
+}
 </script>
 <style scoped>
 .nodes-view {
