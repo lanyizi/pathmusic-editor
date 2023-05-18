@@ -6,18 +6,19 @@
       <dt>Id</dt>
       <dl>{{ event.id }}</dl>
     </dl>
-    <EventActions v-model="event.actions" :model="props.model" />
+    <EventActions v-model="event.actions" :model="model" />
   </div>
 </template>
 <script setup lang="ts">
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
-import { type Model, copyEvent } from '@/model';
-import { ref, watch } from 'vue';
+import { copyEvent, modelKey } from '@/model';
+import { inject, ref, watch } from 'vue';
 import EventActions from './EventActions.vue';
 
-const props = defineProps<{
-  model: Model;
-}>();
+const model = inject(modelKey)!;
+if (!model) {
+  throw new Error('model is not provided');
+}
 const currentEventId = useQueryNumberValue('event', -1);
 const event = ref(createCopy());
 watch(currentEventId, () => {
@@ -31,14 +32,14 @@ watch(
       // then it's changed by us, so we need to update the model.
       // Otherwise, it's changed by the previous watcher (which watches currentEventId),
       // so we don't need to update the model.
-      props.model.setEvent(newValue);
+      model.value.setEvent(newValue);
     }
   },
   { deep: true }
 );
 
 function createCopy() {
-  const source = props.model.getEvent(currentEventId.value);
+  const source = model.value.getEvent(currentEventId.value);
   return source ? copyEvent(source) : null;
 }
 </script>

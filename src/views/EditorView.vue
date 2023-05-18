@@ -8,25 +8,18 @@
     <nav class="top right">
       <a href="https://github.com/lanyizi/pathmusic-editor">Source Code</a>
     </nav>
-    <template v-if="model">
+    <template v-if="!isModelEmpty">
       <select class="top center" v-model="displayMode">
         <option value="text">Text View</option>
         <option value="node-graph">Node Graphs</option>
       </select>
-      <EventInspector class="left tall graph-view" :model="model" />
+      <EventInspector class="left tall graph-view" />
       <NodesTextView
         v-if="displayMode === 'text'"
         class="center text-view"
-        :model="model"
       ></NodesTextView>
       <NodesGraphView v-else class="center graph-view" />
-      <NodeInspector
-        v-if="currentNode"
-        class="right tall"
-        :node="currentNode"
-        :model="model"
-      >
-      </NodeInspector>
+      <NodeInspector v-if="currentNode" class="right tall"> </NodeInspector>
     </template>
     <div v-else-if="loading">Loading...</div>
     <div v-else class="center bottom">
@@ -55,7 +48,7 @@ import NodesTextView from '@/components/NodesTextView.vue';
 import NodesGraphView from '@/components/NodesGraphView.vue';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import { provideFileStore } from '@/file-store';
-import { createModel, type Model } from '@/model';
+import { createModel, modelKey, type Model } from '@/model';
 import {
   dumpEvents,
   dumpNodesAndRoutes,
@@ -64,9 +57,9 @@ import {
   parseNodesAndRoutes,
   parseTracks,
 } from '@/parsers';
-import { computed, watch } from 'vue';
-import { ref } from 'vue';
+import { computed, nextTick, provide, ref, watch } from 'vue';
 import EventInspector from '@/components/EventInspector.vue';
+import type { Immutable } from '@/immutable';
 
 const fileStore = provideFileStore();
 const currentNodeId = useQueryNumberValue('node', -1);
@@ -74,9 +67,21 @@ const currentNode = computed(() => {
   console.log('currentNodeId.value', currentNodeId.value);
   return currentNodeId.value === -1
     ? null
-    : model.value?.data.nodes[currentNodeId.value] ?? null;
+    : model.value.data.nodes[currentNodeId.value] ?? null;
 });
-const model = ref<Model | null>(null);
+const model = ref<Model>(createModel([], [], [], [], []));
+provide(modelKey, model);
+const isModelEmpty = computed(() => {
+  const fields: Immutable<unknown[]>[] = [
+    model.value.data.tracks,
+    model.value.data.nodes,
+    model.value.data.events,
+    model.value.data.variables,
+    model.value.data.routers,
+  ];
+  return fields.every((field) => field.length === 0);
+});
+
 // for discarding changes and reset to original state
 // back to when the files are loaded
 const originalData = ref<[string, string, string] | null>(null);
@@ -85,7 +90,7 @@ const fileAvailable = ref(false);
 const displayMode = ref<'text' | 'node-graph'>('text');
 
 async function loadModel() {
-  model.value = null;
+  model.value = createModel([], [], [], [], []);
   originalData.value = null;
   try {
     loading.value = true;
@@ -105,7 +110,7 @@ async function loadModel() {
 const stopWatching = watch(fileAvailable, () => {
   if (fileAvailable.value) {
     stopWatching();
-    if (!model.value) {
+    if (isModelEmpty.value) {
       loadModel();
     }
   }
@@ -114,13 +119,10 @@ const stopWatching = watch(fileAvailable, () => {
 function clear() {
   fileStore.reset();
   fileAvailable.value = false;
-  model.value = null;
+  model.value = createModel([], [], [], [], []);
 }
 
 async function save() {
-  if (!model.value) {
-    return;
-  }
   const { tracks, nodes, events, variables, routers } = model.value.data;
   const rawEvents = dumpEvents(variables, events);
   const rawNodes = dumpNodesAndRoutes(nodes, routers);
@@ -131,10 +133,12 @@ async function save() {
   await fileStore.saveText('tracks.txt', rawTracks);
 }
 
-function reset() {
+async function reset() {
   if (!originalData.value) {
     return;
   }
+  model.value = createModel([], [], [], [], []);
+  await nextTick();
   const [rawTracks, rawNodes, rawEvents] = originalData.value;
   const tracks = parseTracks(rawTracks);
   const { nodes, routes } = parseNodesAndRoutes(rawNodes);

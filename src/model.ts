@@ -1,4 +1,4 @@
-import { computed, shallowReactive, type Ref } from 'vue';
+import { computed, shallowReactive, type Ref, type InjectionKey } from 'vue';
 import type { Immutable } from '@/immutable';
 
 export interface PathMusicTrack {
@@ -257,3 +257,5 @@ export function createModel(
         .filter((n) => !!n),
   };
 }
+
+export const modelKey = Symbol('model') as InjectionKey<Ref<Model>>;

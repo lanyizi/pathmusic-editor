@@ -56,22 +56,24 @@
 </template>
 <script setup lang="ts">
 import { useFileStore } from '@/file-store';
-import { type Model, copyNode } from '@/model';
+import { copyNode, modelKey } from '@/model';
 import { computed, ref, watch } from 'vue';
 import TextInput from './controls/TextInput.vue';
 import { createQuery } from '@/router/create-query';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
+import { inject } from 'vue';
 const { requestedBinaryFiles } = useFileStore();
 
-const props = defineProps<{
-  model: Model;
-}>();
+const model = inject(modelKey)!;
+if (!model) {
+  throw new Error('model is not provided');
+}
 const currentNodeId = useQueryNumberValue('node', -1);
 const sourcesByBranches = computed(() =>
-  props.model.getSourceNodesByBranches(currentNodeId.value)
+  model.value.getSourceNodesByBranches(currentNodeId.value)
 );
 const associatedEvents = computed(() =>
-  props.model.getNodeAssociatedEvents(currentNodeId.value)
+  model.value.getNodeAssociatedEvents(currentNodeId.value)
 );
 const node = ref(createCopy());
 watch(currentNodeId, () => {
@@ -86,7 +88,7 @@ watch(
       // then it's changed by us, so we need to update the model.
       // Otherwise, it's changed by the previous watcher (which watches currentNodeId),
       // so we don't need to update the model.
-      props.model.setNode(newValue);
+      model.value.setNode(newValue);
     }
   },
   { deep: true }
@@ -98,7 +100,7 @@ const musicFileName = computed(() => {
 });
 
 function createCopy() {
-  const source = props.model.data.nodes[currentNodeId.value];
+  const source = model.value.data.nodes[currentNodeId.value];
   if (!source) {
     return null;
   }

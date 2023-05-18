@@ -23,14 +23,18 @@
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import { groupModelNodes } from '@/group-model-nodes';
 import type { Immutable } from '@/immutable';
-import { type Model, type PathMusicNode } from '@/model';
+import { modelKey, type PathMusicNode } from '@/model';
 import { createQuery } from '@/router/create-query';
+import { inject } from 'vue';
 import { computed } from 'vue';
 
-const props = defineProps<{ model: Model }>();
+const model = inject(modelKey)!;
+if (!model) {
+  throw new Error('model is not provided');
+}
 const selectedId = useQueryNumberValue('node', -1);
 const nodeGroups = computed(() =>
-  groupModelNodes(props.model).map((group) => {
+  groupModelNodes(model.value).map((group) => {
     const formattedGroup = group.map(formatHints);
     return {
       group: formattedGroup,
@@ -40,19 +44,18 @@ const nodeGroups = computed(() =>
 );
 
 function formatHints(node: Immutable<PathMusicNode>) {
-  const model = props.model;
   let superscript = '';
   let subscript = '';
   if (node.musicIndex > 0) {
     superscript += 'M';
   }
-  if (model.getNodeAssociatedEvents(node.id).length > 0) {
+  if (model.value.getNodeAssociatedEvents(node.id).length > 0) {
     superscript += 'E';
   }
-  if (model.getSourceNodesByBranches(node.id).length > 1) {
+  if (model.value.getSourceNodesByBranches(node.id).length > 1) {
     superscript += 'B';
   }
-  if (model.getSourceNodesByRouters(node.id).length > 1) {
+  if (model.value.getSourceNodesByRouters(node.id).length > 1) {
     superscript += 'R';
   }
   if (node.branches.length > 1) {
