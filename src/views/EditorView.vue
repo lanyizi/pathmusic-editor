@@ -47,21 +47,13 @@ import NodeInspector from '@/components/NodeInspector.vue';
 import NodesTextView from '@/components/NodesTextView.vue';
 import NodesGraphView from '@/components/NodesGraphView.vue';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
-import { provideFileStore } from '@/file-store';
-import { createModel, modelKey, type Model } from '@/model';
-import {
-  dumpEvents,
-  dumpNodesAndRoutes,
-  dumpTracks,
-  parseEvents,
-  parseNodesAndRoutes,
-  parseTracks,
-} from '@/parsers';
-import { computed, nextTick, provide, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import EventInspector from '@/components/EventInspector.vue';
-import type { Immutable } from '@/immutable';
+import { useEditor } from '@/composables/useEditor';
 
-const fileStore = provideFileStore();
+const { model, isModelEmpty, loading, fileAvailable, clear, save, reset } =
+  useEditor();
+
 const currentNodeId = useQueryNumberValue('node', -1);
 const currentNode = computed(() => {
   console.log('currentNodeId.value', currentNodeId.value);
@@ -69,82 +61,8 @@ const currentNode = computed(() => {
     ? null
     : model.value.data.nodes[currentNodeId.value] ?? null;
 });
-const model = ref<Model>(createModel([], [], [], [], []));
-provide(modelKey, model);
-const isModelEmpty = computed(() => {
-  const fields: Immutable<unknown[]>[] = [
-    model.value.data.tracks,
-    model.value.data.nodes,
-    model.value.data.events,
-    model.value.data.variables,
-    model.value.data.routers,
-  ];
-  return fields.every((field) => field.length === 0);
-});
 
-// for discarding changes and reset to original state
-// back to when the files are loaded
-const originalData = ref<[string, string, string] | null>(null);
-const loading = ref(false);
-const fileAvailable = ref(false);
 const displayMode = ref<'text' | 'node-graph'>('text');
-
-async function loadModel() {
-  model.value = createModel([], [], [], [], []);
-  originalData.value = null;
-  try {
-    loading.value = true;
-    const rawTracks = await fileStore.loadText('tracks.txt');
-    const rawNodes = await fileStore.loadText('nodes.txt');
-    const rawEvents = await fileStore.loadText('events.txt');
-    const tracks = parseTracks(rawTracks);
-    const { nodes, routes } = parseNodesAndRoutes(rawNodes);
-    const { events, variables } = parseEvents(rawEvents, tracks, nodes);
-    model.value = createModel(tracks, nodes, events, variables, routes);
-    originalData.value = [rawTracks, rawNodes, rawEvents];
-  } finally {
-    loading.value = false;
-  }
-}
-// load model when file is available
-const stopWatching = watch(fileAvailable, () => {
-  if (fileAvailable.value) {
-    stopWatching();
-    if (isModelEmpty.value) {
-      loadModel();
-    }
-  }
-});
-
-function clear() {
-  fileStore.reset();
-  fileAvailable.value = false;
-  model.value = createModel([], [], [], [], []);
-}
-
-async function save() {
-  const { tracks, nodes, events, variables, routers } = model.value.data;
-  const rawEvents = dumpEvents(variables, events);
-  const rawNodes = dumpNodesAndRoutes(nodes, routers);
-  const rawTracks = dumpTracks(tracks);
-  originalData.value = [rawTracks, rawNodes, rawEvents];
-  await fileStore.saveText('events.txt', rawEvents);
-  await fileStore.saveText('nodes.txt', rawNodes);
-  await fileStore.saveText('tracks.txt', rawTracks);
-}
-
-async function reset() {
-  if (!originalData.value) {
-    return;
-  }
-  model.value = createModel([], [], [], [], []);
-  await nextTick();
-  const [rawTracks, rawNodes, rawEvents] = originalData.value;
-  const tracks = parseTracks(rawTracks);
-  const { nodes, routes } = parseNodesAndRoutes(rawNodes);
-  const { events, variables } = parseEvents(rawEvents, tracks, nodes);
-  model.value = createModel(tracks, nodes, events, variables, routes);
-}
 </script>
 <style scoped>
 .editor-view {
