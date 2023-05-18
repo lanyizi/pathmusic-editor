@@ -17,7 +17,7 @@
   </span>
 </template>
 <script setup lang="ts" generic="T extends number | string">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
   modelValue: T;
@@ -49,7 +49,14 @@ const editing = computed({
 const value = ref(props.modelValue);
 const isInputShort = computed(() => !props.long);
 
-let lastChange = performance.now();
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    value.value = newValue as any;
+  }
+);
+
+let lastChange = performance.now() - 300;
 function isFrequentChange() {
   if (performance.now() - lastChange < 300) {
     return true;
