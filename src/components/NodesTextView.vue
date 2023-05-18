@@ -25,23 +25,22 @@ import { groupModelNodes } from '@/group-model-nodes';
 import type { Immutable } from '@/immutable';
 import { modelKey, type PathMusicNode } from '@/model';
 import { createQuery } from '@/router/create-query';
-import { inject } from 'vue';
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 
 const model = inject(modelKey)!;
 if (!model) {
   throw new Error('model is not provided');
 }
 const selectedId = useQueryNumberValue('node', -1);
-const nodeGroups = computed(() =>
-  groupModelNodes(model.value).map((group) => {
+const nodeGroups = computed(() => {
+  return groupModelNodes(model.value).map((group) => {
     const formattedGroup = group.map(formatHints);
     return {
       group: formattedGroup,
       selected: formattedGroup.some((data) => data.selected),
     };
-  })
-);
+  });
+});
 
 function formatHints(node: Immutable<PathMusicNode>) {
   let superscript = '';

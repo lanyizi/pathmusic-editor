@@ -44,6 +44,7 @@ export function useEditor() {
   });
 
   async function loadModel() {
+    console.log('clearing previous model');
     model.value = createModel([], [], [], [], []);
     originalData.value = null;
     try {
@@ -54,6 +55,7 @@ export function useEditor() {
       const tracks = parseTracks(rawTracks);
       const { nodes, routes } = parseNodesAndRoutes(rawNodes);
       const { events, variables } = parseEvents(rawEvents, tracks, nodes);
+      console.log('loading actual model');
       model.value = createModel(tracks, nodes, events, variables, routes);
       originalData.value = [rawTracks, rawNodes, rawEvents];
     } finally {

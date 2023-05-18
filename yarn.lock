@@ -1385,6 +1385,11 @@ globby@^11.1.0:
     merge2 "^1.4.1"
     slash "^3.0.0"
 
+golden-layout@^2.6.0:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/golden-layout/-/golden-layout-2.6.0.tgz#aff90f77262c7fd6b6d8fbe2a2d222e24999b9a9"
+  integrity sha512-sIVQCiRWOymHbVD1Aw/T9/ijbPYAVGBlgGYd1N9MRKfcyBNSpjr87Vg9nSHm+RCT8ELrvK8IJYJV0QRJuVUkCQ==
+
 gopd@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/gopd/-/gopd-1.0.1.tgz#29ff76de69dac7489b7c0918a5788e56477c332c"
