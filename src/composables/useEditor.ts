@@ -1,3 +1,4 @@
+import { provideAudioPlayer } from '@/audio-player';
 import { provideFileStore } from '@/file-store';
 import type { Immutable } from '@/immutable';
 import { createModel, modelKey, type Model } from '@/model';
@@ -13,6 +14,7 @@ import { computed, nextTick, provide, ref, watch } from 'vue';
 
 export function useEditor() {
   const fileStore = provideFileStore();
+  provideAudioPlayer(fileStore);
 
   const model = ref<Model>(createModel([], [], [], [], []));
   provide(modelKey, model);

@@ -14,7 +14,7 @@ export interface PendingWriteTask<T> extends PendingTask<void> {
   data: T;
 }
 
-interface FileStore {
+export interface FileStore {
   loadText(path: string): Promise<string>;
   loadBinary(path: string): Promise<ArrayBuffer>;
   saveText(path: string, data: string): Promise<void>;

@@ -6,6 +6,10 @@
       Music: {{ node.musicIndex }}
       <span v-if="musicFileName">[{{ musicFileName }}]</span>
     </div>
+    <Suspense v-if="musicFileName">
+      <MusicPlayer music-type="file" :musicId="musicFileName" />
+      <template #fallback>Loading MusicPlayer</template>
+    </Suspense>
     <section>
       <h2>Branches</h2>
       <ol>
@@ -55,19 +59,17 @@
   </div>
 </template>
 <script setup lang="ts">
-import { useFileStore } from '@/file-store';
 import { copyNode, modelKey } from '@/model';
 import { computed, ref, watch } from 'vue';
 import TextInput from './controls/TextInput.vue';
 import { createQuery } from '@/router/create-query';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import { inject } from 'vue';
+import MusicPlayer from './controls/MusicPlayer.vue';
 
 const emit = defineEmits<{
   (type: 'wantFocus'): void;
 }>();
-
-const { requestedBinaryFiles } = useFileStore();
 
 const model = inject(modelKey)!;
 if (!model) {
@@ -85,7 +87,6 @@ watch(
   currentNodeId,
   () => {
     if (model.value.data.nodes[currentNodeId.value]) {
-    console.log('valid node id, want focus');
       emit('wantFocus');
     }
     // obtain a fresh copy of the node
