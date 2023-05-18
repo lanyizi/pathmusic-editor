@@ -28,6 +28,12 @@
         </a>
       </dd>
     </dl>
+    <br />
+    This project was intended to be a web-based desktop program, which should be
+    able to automatically invoke other programs and load files from local disk.
+    However, for ease of development, for now it's a purely web-based
+    application. So for now it's required to manually load files from local disk
+    and manually invoke other necessary tools (as mentioned above).
   </div>
   <div
     class="drop-zone"
