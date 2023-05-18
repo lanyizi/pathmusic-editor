@@ -27,6 +27,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   (event: 'update:modelValue', value: T): void;
+  (event: 'update:cancel'): void;
   (event: 'state', value: 'normal' | 'editing'): void;
 }>();
 const localEditing = ref(false);
@@ -93,6 +94,7 @@ function cancel() {
   } else {
     value.value = `${props.modelValue}` as any;
   }
+  emit('update:cancel');
 }
 </script>
 <style scoped>
