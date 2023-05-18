@@ -62,6 +62,11 @@ import TextInput from './controls/TextInput.vue';
 import { createQuery } from '@/router/create-query';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import { inject } from 'vue';
+
+const emit = defineEmits<{
+  (type: 'wantFocus'): void;
+}>();
+
 const { requestedBinaryFiles } = useFileStore();
 
 const model = inject(modelKey)!;
@@ -77,6 +82,10 @@ const associatedEvents = computed(() =>
 );
 const node = ref(createCopy());
 watch(currentNodeId, () => {
+  if (model.value.data.nodes[currentNodeId.value]) {
+    console.log('valid node id, want focus');
+    emit('wantFocus');
+  }
   // obtain a fresh copy of the node
   node.value = createCopy();
 });

@@ -15,6 +15,10 @@ import { copyEvent, modelKey } from '@/model';
 import { inject, ref, watch } from 'vue';
 import EventActions from './EventActions.vue';
 
+const emit = defineEmits<{
+  (type: 'wantFocus'): void;
+}>();
+
 const model = inject(modelKey)!;
 if (!model) {
   throw new Error('model is not provided');
@@ -22,6 +26,11 @@ if (!model) {
 const currentEventId = useQueryNumberValue('event', -1);
 const event = ref(createCopy());
 watch(currentEventId, () => {
+  // check if is valid event id
+  if (model.value.getEvent(currentEventId.value)) {
+    console.log('valid event id, want focus');
+    emit('wantFocus');
+  }
   event.value = createCopy();
 });
 watch(
