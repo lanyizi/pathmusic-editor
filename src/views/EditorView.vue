@@ -78,6 +78,15 @@ onMounted(async () => {
   GLayoutRoot.value.findComponentsByType('NodesTextView')[0]?.focus();
 });
 </script>
+<style>
+.editor-view .lm_header .lm_tab.lm_active.lm_focused {
+  background-color: var(--color-border-hover);
+  color: var(--color-heading);
+}
+.editor-view .lm_header .lm_tab.lm_active.lm_focused .lm_title {
+  font-weight: bold;
+}
+</style>
 <style scoped>
 .editor-view {
   display: grid;

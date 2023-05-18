@@ -12,8 +12,40 @@ a,
   transition: 0.4s;
 }
 
+button {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  transition: 0.4s;
+}
+
+button:disabled {
+  color: var(--color-border);
+}
+
+* {
+  scrollbar-color: var(--color-border) var(--color-background);
+}
+*::-webkit-scrollbar {
+  background-color: var(--color-background);
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+}
+
 @media (hover: hover) {
   a:hover {
     background-color: var(--color-background-link-highlight);
   }
+
+  button:hover {
+    border-color: var(--color-border-hover);
+    background-color: var(--color-background-link-highlight);
+    color: var(--color-heading);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-text);
+  }
 }
+
