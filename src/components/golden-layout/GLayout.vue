@@ -11,7 +11,10 @@
         :key="pair[0]"
         :ref="GlcKeyPrefix + pair[0]"
       >
-        <component :is="pair[1]"></component>
+        <component
+          :is="pair[1]"
+          @wantFocus="focusComponent(pair[0])"
+        ></component>
       </GLComponent>
     </div>
   </div>
@@ -68,6 +71,10 @@ let CurIndex = 0;
 let GlBoundingClientRect: DOMRect;
 
 const instance = getCurrentInstance();
+
+function focusComponent(containerId: number) {
+  findComponentById(containerId)?.focus();
+}
 
 /*******************
  * Method
@@ -155,7 +162,7 @@ const getLayoutConfig = () => {
   return GLayout.saveLayout();
 };
 
-const findComponents = (name: string) => {
+const findComponentsByType = (name: string) => {
   const stack: ContentItem[] = [];
   const result: ComponentItem[] = [];
   if (GLayout.rootItem) {
@@ -174,6 +181,27 @@ const findComponents = (name: string) => {
     }
   }
   return result;
+};
+
+const findComponentById = (refId: number) => {
+  const stack: ContentItem[] = [];
+  if (GLayout.rootItem) {
+    stack.push(GLayout.rootItem);
+  }
+  while (stack.length > 0) {
+    const item = stack.pop() as ContentItem;
+    if (item.type === 'component') {
+      const component = item as ComponentItem;
+      const state = component.container.initialState as Json;
+      if (state?.refId === refId) {
+        return component;
+      }
+    }
+    if (item.contentItems.length > 0) {
+      stack.push(...item.contentItems);
+    }
+  }
+  return null;
 };
 
 /*******************
@@ -319,6 +347,6 @@ defineExpose({
   addGLComponent,
   loadGLLayout,
   getLayoutConfig,
-  findComponents,
+  findComponentsByType,
 });
 </script>

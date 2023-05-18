@@ -75,7 +75,7 @@ const layoutConfig: LayoutConfig = {
 onMounted(async () => {
   GLayoutRoot.value.loadGLLayout(layoutConfig);
   await loadModel();
-  GLayoutRoot.value.findComponents('NodesTextView')[0]?.focus();
+  GLayoutRoot.value.findComponentsByType('NodesTextView')[0]?.focus();
 });
 </script>
 <style scoped>
