@@ -1,6 +1,7 @@
 <template>
   <div class="editor-view">
     <menu class="top left">
+      <h3>RA3 PathMusic Editor</h3>
       <button @click="clear">New</button>
       <button @click="save">Save</button>
       <button @click="reset">Reset</button>
