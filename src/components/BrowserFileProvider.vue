@@ -37,7 +37,7 @@
 import { computed, ref, watchEffect } from 'vue';
 import { useFileStore, type PendingReadTask } from '@/file-store';
 
-const emit = defineEmits(['file-loaded']);
+const emit = defineEmits(['fileLoaded', 'wantFocus']);
 
 const dropZone = ref<HTMLElement>(null as unknown as HTMLElement);
 const {
@@ -63,18 +63,39 @@ watchEffect(() => {
     availableFilesList.value = [];
     resetRequest.resolve(Promise.resolve());
   }
-  for (const available of availableFilesList.value) {
-    for (const requested of requestedTextFiles.value) {
+
+  let anyUnfulfilled = false;
+  const requestedTexts = [...requestedTextFiles.value];
+  const requestedBinaries = [...requestedBinaryFiles.value];
+  for (const requested of requestedTexts) {
+    let unfulfilled = true;
+    for (const available of availableFilesList.value) {
       if (requested.path == available.path) {
+        unfulfilled = false;
         requested.resolve(available.file.text());
       }
     }
-    for (const requested of requestedBinaryFiles.value) {
+    if (unfulfilled) {
+      anyUnfulfilled = true;
+    }
+  }
+  for (const requested of requestedBinaries) {
+    let unfulfilled = true;
+    for (const available of availableFilesList.value) {
       if (requested.path == available.path) {
+        unfulfilled = false;
         requested.resolve(available.file.arrayBuffer());
       }
     }
+    if (unfulfilled) {
+      anyUnfulfilled = true;
+    }
   }
+
+  if (anyUnfulfilled) {
+    emit('wantFocus');
+  }
+
   for (const requestedTextSave of requestedTextSaves.value) {
     download(requestedTextSave.data, requestedTextSave.path, 'text/plain');
     requestedTextSave.resolve(Promise.resolve());
@@ -102,7 +123,7 @@ function handleFileDrop(event: DragEvent) {
 
   const files = event.dataTransfer?.files;
   if (files) {
-    emit('file-loaded');
+    emit('fileLoaded');
     // Process the dropped files (e.g., upload, preview, etc.)
     handleFiles(files);
   }
