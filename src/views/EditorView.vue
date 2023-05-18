@@ -57,6 +57,14 @@ const layoutConfig: LayoutConfig = {
             },
             componentType: 'NodesTextView',
           } as ComponentItemConfig,
+          {
+            type: 'component',
+            title: 'Nodes Graph View',
+            header: {
+              show: 'top',
+            },
+            componentType: 'NodesGraphView',
+          } as ComponentItemConfig,
         ],
         width: 60,
       },
