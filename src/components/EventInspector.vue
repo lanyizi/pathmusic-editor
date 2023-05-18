@@ -25,14 +25,18 @@ if (!model) {
 }
 const currentEventId = useQueryNumberValue('event', -1);
 const event = ref(createCopy());
-watch(currentEventId, () => {
-  // check if is valid event id
-  if (model.value.getEvent(currentEventId.value)) {
-    console.log('valid event id, want focus');
-    emit('wantFocus');
-  }
-  event.value = createCopy();
-});
+watch(
+  currentEventId,
+  () => {
+    // check if is valid event id
+    if (model.value.getEvent(currentEventId.value)) {
+      console.log('valid event id, want focus');
+      emit('wantFocus');
+    }
+    event.value = createCopy();
+  },
+  { immediate: true }
+);
 watch(
   event,
   (newValue, oldValue) => {

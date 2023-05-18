@@ -81,14 +81,18 @@ const associatedEvents = computed(() =>
   model.value.getNodeAssociatedEvents(currentNodeId.value)
 );
 const node = ref(createCopy());
-watch(currentNodeId, () => {
-  if (model.value.data.nodes[currentNodeId.value]) {
+watch(
+  currentNodeId,
+  () => {
+    if (model.value.data.nodes[currentNodeId.value]) {
     console.log('valid node id, want focus');
-    emit('wantFocus');
-  }
-  // obtain a fresh copy of the node
-  node.value = createCopy();
-});
+      emit('wantFocus');
+    }
+    // obtain a fresh copy of the node
+    node.value = createCopy();
+  },
+  { immediate: true }
+);
 watch(
   node,
   (newValue, oldValue) => {
