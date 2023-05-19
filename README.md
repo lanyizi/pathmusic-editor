@@ -1,5 +1,7 @@
 # RA3 PathMusic Editor
 
+Try online: https://lanyizi.github.io/pathmusic-editor/#/
+
 Based on work of https://github.com/utunnels/ra3pathmusic
 
 ## Recommended IDE Setup
