@@ -3,7 +3,7 @@
     :type="type"
     :disabled="isDisabled"
     :value="value"
-    :input="input"
+    @input="input"
     :class="{ short: isInputShort }"
   />
 </template>
