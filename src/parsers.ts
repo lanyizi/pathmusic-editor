@@ -156,6 +156,29 @@ event: {
   ],
 },
   */
+  function tryParseActionArguments(action: string, name: string) {
+    if (!action.startsWith(`${name}(`)) {
+      throw new Error(`Expected ${name} in ${action}`);
+    }
+    const splitted = action
+      .slice(`${name}(`.length, -')'.length)
+      .split(',')
+      .map((s) => s.split('='));
+    function string(name: string, index: number) {
+      const value = splitted[index][1].trim();
+      if (splitted[index][0].trim() !== name) {
+        throw new Error(`Expected ${name} in ${action}`);
+      }
+      return value;
+    }
+    return {
+      string,
+      number(name: string, index: number) {
+        return Number(string(name, index));
+      },
+    };
+  }
+
   enum ParseState {
     None,
     Vars,
@@ -276,37 +299,73 @@ event: {
         }
         if (action.startsWith('end if')) {
           actionsStack.pop();
-          actionsStack[actionsStack.length - 1].push({
-            type: PathMusicActionType.EndIf,
-          });
           continue;
         }
         if (action.startsWith('branchto(')) {
-          const args = action
-            .slice('branchto('.length, -')'.length)
-            .split(',')
-            .map((s) => s.split('=')[1].trim());
-          const node = parseInt(args[0]);
+          const getArg = tryParseActionArguments(action, 'branchto');
+          const node = getArg.number('node', 0);
           if (node > 0 && !nodes[node - 1]) {
             throw new Error(`Invalid node id in line ${i + 1}: ${line}`);
           }
-          const ofsection = parseInt(args[1]);
-          const immediate = args[2] === 'true';
           actionsStack[actionsStack.length - 1].push({
             type: PathMusicActionType.BranchTo,
             node,
-            ofsection,
-            immediate,
+            ofsection: getArg.number('ofsection', 1),
+            immediate: getArg.string('immediate', 2) === 'true',
             track: getTrackId(comment),
           });
           continue;
         }
-        actionsStack[actionsStack.length - 1].push({
-          type: PathMusicActionType.Generic,
-          data: action,
-          track: getTrackId(comment),
-        });
-        break;
+        if (action.startsWith('wait(')) {
+          const getArg = tryParseActionArguments(action, 'wait');
+          const millisecs = getArg.string('millisecs', 1);
+          actionsStack[actionsStack.length - 1].push({
+            type: PathMusicActionType.WaitTime,
+            lowest: getArg.number('lowest', 0),
+            millisecs:
+              millisecs === 'PATH_TIMETONEXTNODE'
+                ? millisecs
+                : Number(millisecs),
+            track: getTrackId(comment),
+          });
+          continue;
+        }
+        if (action.startsWith('fade(')) {
+          const getArg = tryParseActionArguments(action, 'fade');
+          actionsStack[actionsStack.length - 1].push({
+            type: PathMusicActionType.Fade,
+            tovol: getArg.number('tovol', 0),
+            id: getArg.string('id', 1),
+            flip: getArg.number('flip', 2),
+            ms: getArg.number('ms', 3),
+            track: getTrackId(comment),
+          });
+          continue;
+        }
+        if (action.includes('=') && !action.includes('(')) {
+          const equalSignIndex = action.indexOf('=');
+          const operator = action.slice(equalSignIndex - 1, equalSignIndex + 1);
+          if (['+=', '-=', '*=', '/=', '%='].includes(operator)) {
+            const [left, right] = action.split(operator).map((s) => s.trim());
+            actionsStack[actionsStack.length - 1].push({
+              type: PathMusicActionType.Calculate,
+              left,
+              operator,
+              right: Number(right),
+              track: getTrackId(comment),
+            });
+          } else {
+            const [left, right] = action.split('=').map((s) => s.trim());
+            actionsStack[actionsStack.length - 1].push({
+              type: PathMusicActionType.SetValue,
+              left,
+              right: right === 'PATH_RANDOMSHORT' ? right : Number(right),
+              track: getTrackId(comment),
+            });
+          }
+          continue;
+        }
+        throw new Error(`Unknown action in line ${i + 1}: ${line}`);
       }
       case ParseState.EndActions:
         actionsStack.pop();
@@ -344,6 +403,24 @@ export function dumpEvents(
   variables: Immutable<[string, number][]>,
   events: Immutable<PathMusicEvent[]>
 ): string {
+  function getNestedActions(source: Immutable<{ actions: PathMusicAction[] }>) {
+    const result: Immutable<PathMusicAction | { type: 'endif' }>[] = [];
+    for (let i = 0; i < source.actions.length; ++i) {
+      result.push(source.actions[i]);
+      const type = source.actions[i].type;
+      const next = source.actions[i + 1]?.type;
+      const hasNoElseIf =
+        type === PathMusicActionType.If &&
+        next !== PathMusicActionType.Else &&
+        next !== PathMusicActionType.ElseIf;
+      const nextIsEndIf = hasNoElseIf || type === PathMusicActionType.Else;
+      if (nextIsEndIf) {
+        result.push({ type: 'endif' });
+      }
+    }
+    return result;
+  }
+
   const result = [];
   result.push('vars: {');
   for (const [key, value] of variables) {
@@ -354,10 +431,14 @@ export function dumpEvents(
     result.push(`event: {`);
     result.push(`\teventID: ${event.name}`);
     result.push(`\tactions:[`);
-    const actions = [...event.actions];
+    type OutputAction = Immutable<PathMusicAction | { type: 'endif' }>;
+    const actions: OutputAction[] = getNestedActions(event);
     for (let i = 0; i < actions.length; ++i) {
       const action = actions[i];
       switch (action.type) {
+        case 'endif':
+          result.push(`\t\tend if`);
+          break;
         case PathMusicActionType.If:
           result.push(`\t\tif(${action.condition}) #${action.track}`);
           break;
@@ -367,22 +448,34 @@ export function dumpEvents(
         case PathMusicActionType.Else:
           result.push(`\t\telse #${action.track}`);
           break;
-        case PathMusicActionType.EndIf:
-          result.push(`\t\tend if`);
+        case PathMusicActionType.WaitTime:
+          result.push(
+            `\t\twait(lowest=${action.lowest}, millisecs=${action.millisecs}) #${action.track}`
+          );
           break;
         case PathMusicActionType.BranchTo:
           result.push(
             `\t\tbranchto(node=${action.node}, ofsection=${action.ofsection}, immediate=${action.immediate}) #${action.track}`
           );
           break;
-        case PathMusicActionType.Generic:
-          result.push(`\t\t${action.data} #${action.track}`);
+        case PathMusicActionType.Fade:
+          result.push(
+            `\t\tfade(tovol=${action.tovol}, id=${action.id}, flip=${action.flip}, ms=${action.ms}) #${action.track}`
+          );
+          break;
+        case PathMusicActionType.SetValue:
+          result.push(`\t\t${action.left}=${action.right} #${action.track}`);
+          break;
+        case PathMusicActionType.Calculate:
+          result.push(
+            `\t\t${action.left}${action.operator}${action.right} #${action.track}`
+          );
           break;
         default:
-          throw new Error(`Unexpected action type`);
+          throw new Error(`Unexpected action type ${(action as any).type}`);
       }
       if ('actions' in action) {
-        actions.splice(i + 1, 0, ...action.actions);
+        actions.splice(i + 1, 0, ...getNestedActions(action));
       }
     }
     result.push(`\t],`);
