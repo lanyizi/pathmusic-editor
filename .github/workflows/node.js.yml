@@ -29,6 +29,8 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      BASE_URL: /pathmusic-editor
     strategy:
       matrix:
         node-version: [18.x]
@@ -43,10 +45,8 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: yarn install --frozen-lockfile
-    - run: yarn test:unit
     - run: yarn build
-      env:
-        BASE_URL: /pathmusic-editor
+    - run: yarn test:unit
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v1
       with:
