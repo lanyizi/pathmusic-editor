@@ -12,11 +12,20 @@ a,
   transition: 0.4s;
 }
 
-button {
+button, input, select {
   background-color: var(--color-background);
   border: 1px solid var(--color-border);
   color: var(--color-text);
   transition: 0.4s;
+  accent-color: var(--color-background-link-highlight);
+}
+
+input[type="checkbox"] {
+  filter: brightness(10%);
+}
+
+input[type="checkbox"]:checked {
+  filter: none;
 }
 
 button:disabled {
@@ -42,6 +51,14 @@ button:disabled {
     border-color: var(--color-border-hover);
     background-color: var(--color-background-link-highlight);
     color: var(--color-heading);
+  }
+
+  input[type="checkbox"]:hover {
+    filter: brightness(30%);
+  }
+
+  input[type="checkbox"]:checked:hover {
+    filter: none;
   }
 
   *::-webkit-scrollbar-thumb:hover {
