@@ -1,39 +1,31 @@
 <template>
-  <EditableContent
-    :editing="props.editing"
-    :showButtons="false"
-    @update:ok="edit"
-    @update:cancel="cancel"
-  >
-    <template #edit>
+  <div>
+    <template v-if="editing">
       <label>
-        Lowest
-        <TextInput type="number" v-model="localValue.lowest" />
+        lowest
+        <TextInput type="number" v-model="lowest" />
       </label>
       <label>
-        Time
-        <TextInput
-          type="number"
-          :disabled="useRandom"
-          v-model="localValue.millisecs"
-        />ms
+        <TextInput type="number" :disabled="useRandom" v-model="millisecs" />ms
       </label>
       <laebl>
         <input type="checkbox" v-model="useRandom" />
-        Time to next node
+        time to next node
       </laebl>
     </template>
-    <template #display>
-      <span>Lowest {{ localValue.lowest }}</span>
-      <span>Time {{ localValue.millisecs }}</span>
+    <template v-else>
+      <span class="margin-right">lowest {{ lowest }}</span>
+      <span
+        >{{ millisecs
+        }}<template v-if="typeof millisecs === 'number'">ms</template></span
+      >
     </template>
-  </EditableContent>
+  </div>
 </template>
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useCancelableEdit } from '@/composables/useCancelableEdit';
-import { copyEventAction, type WaitTimeAction } from '@/model';
-import EditableContent from '@/components/controls/EditableContent.vue';
+import { type WaitTimeAction } from '@/model';
+import { useFieldWrapper } from '@/composables/useFieldWrappers';
 import TextInput from '@/components/controls/TextInput.vue';
 
 const props = defineProps<{
@@ -46,17 +38,20 @@ const emit = defineEmits<{
   (event: 'update:cancel'): void;
 }>();
 
-const { localValue, edit, cancel } = useCancelableEdit(props, emit, (action) =>
-  copyEventAction(action)
-);
+const { lowest, millisecs } = useFieldWrapper(props, emit);
 const useRandom = computed({
-  get: () => localValue.value.millisecs === 'PATH_TIMETONEXTNODE',
+  get: () => millisecs.value === 'PATH_TIMETONEXTNODE',
   set: (value) => {
     if (value) {
-      localValue.value.millisecs = 'PATH_TIMETONEXTNODE';
+      millisecs.value = 'PATH_TIMETONEXTNODE';
     } else {
-      localValue.value.millisecs = localValue.value.lowest;
+      millisecs.value = lowest.value;
     }
   },
 });
 </script>
+<style scoped>
+.margin-right {
+  margin-right: 0.5em;
+}
+</style>

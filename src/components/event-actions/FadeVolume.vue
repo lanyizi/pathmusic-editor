@@ -1,37 +1,32 @@
 <template>
-  <EditableContent
-    :editing="props.editing"
-    :showButtons="false"
-    @update:ok="edit"
-    @update:cancel="cancel"
-  >
-    <template #edit>
-      <label>
-        To Volume
-        <TextInput type="number" v-model="localValue.tovol" />
+  <div>
+    <template v-if="editing">
+      <label class="margin-right">
+        [tovolume
+        <TextInput type="number" v-model="tovol" />]
       </label>
-      <SelectOption :choices="FadeTypes" v-model="localValue.id"></SelectOption>
-      <label>
-        Flip
-        <TextInput type="number" v-model="localValue.flip" />
+      <SelectOption
+        class="margin-right"
+        :choices="FadeTypes"
+        v-model="id"
+      ></SelectOption>
+      <label class="margin-right">
+        flip
+        <TextInput type="number" v-model="flip" />
       </label>
-      <label>
-        Time
-        <TextInput type="number" v-model="localValue.ms" />ms
-      </label>
+      <TextInput type="number" v-model="ms" />ms
     </template>
-    <template #display>
-      <span>To Volume {{ localValue.tovol }}</span>
-      <span>{{ localValue.id }}</span>
-      <span>Flip {{ localValue.flip }}</span>
-      <span>Time {{ localValue.ms }}ms</span>
+    <template v-else>
+      <span class="margin-right">tovolume {{ tovol }}</span>
+      <span class="margin-right">{{ id }}</span>
+      <span class="margin-right">flip {{ flip }}</span>
+      <span>{{ ms }}ms</span>
     </template>
-  </EditableContent>
+  </div>
 </template>
 <script setup lang="ts">
-import { useCancelableEdit } from '@/composables/useCancelableEdit';
-import { copyEventAction, type FadeAction } from '@/model';
-import EditableContent from '@/components/controls/EditableContent.vue';
+import { FadeTypes, type FadeAction } from '@/model';
+import { useFieldWrapper } from '@/composables/useFieldWrappers';
 import TextInput from '@/components/controls/TextInput.vue';
 import SelectOption from '@/components/controls/SelectOption.vue';
 
@@ -45,14 +40,10 @@ const emit = defineEmits<{
   (event: 'update:cancel'): void;
 }>();
 
-const FadeTypes = [
-  'PATH_FADE_LINEAR',
-  'PATH_FADE_EQPOWER',
-  'PATH_FADE_EXPONENTIAL',
-  'PATH_FADE_COSINE',
-];
-
-const { localValue, edit, cancel } = useCancelableEdit(props, emit, (action) =>
-  copyEventAction(action)
-);
+const { tovol, id, flip, ms } = useFieldWrapper(props, emit);
 </script>
+<style scoped>
+.margin-right {
+  margin-right: 0.5em;
+}
+</style>

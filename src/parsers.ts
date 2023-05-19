@@ -7,6 +7,8 @@ import {
   type PathMusicAction,
   Comparisons,
   Operators,
+  FadeTypes,
+  type FadeType,
 } from '@/model';
 import type { Immutable } from '@/immutable';
 
@@ -354,7 +356,7 @@ event: {
           actionsStack[actionsStack.length - 1].push({
             type: PathMusicActionType.BranchTo,
             node,
-            ofsection: getArg.number('ofsection', 1),
+            offsection: getArg.number('ofsection', 1),
             immediate: getArg.string('immediate', 2) === 'true',
             track: getTrackId(comment),
           });
@@ -376,10 +378,14 @@ event: {
         }
         if (action.startsWith('fade(')) {
           const getArg = parseActionArguments(action, 'fade');
+          const fadeType = getArg.string('id', 1);
+          if (!(FadeTypes as readonly string[]).includes(fadeType)) {
+            throw new Error(`Invalid fade type in line ${i + 1}: ${line}`);
+          }
           actionsStack[actionsStack.length - 1].push({
             type: PathMusicActionType.Fade,
             tovol: getArg.number('tovol', 0),
-            id: getArg.string('id', 1),
+            id: fadeType as FadeType,
             flip: getArg.number('flip', 2),
             ms: getArg.number('ms', 3),
             track: getTrackId(comment),
@@ -501,7 +507,7 @@ export function dumpEvents(
           break;
         case PathMusicActionType.BranchTo:
           result.push(
-            `\t\tbranchto(node=${action.node}, ofsection=${action.ofsection}, immediate=${action.immediate}) #${action.track}`
+            `\t\tbranchto(node=${action.node}, ofsection=${action.offsection}, immediate=${action.immediate}) #${action.track}`
           );
           break;
         case PathMusicActionType.Fade:

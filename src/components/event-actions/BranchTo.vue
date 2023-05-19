@@ -1,51 +1,39 @@
 <template>
-  <EditableContent
-    :editing="props.editing"
-    :showButtons="false"
-    @update:ok="edit"
-    @update:cancel="cancel"
-  >
-    <template #edit>
-      <label>
-        To
-        <TextInput type="number" v-model="localValue.node" />
-      </label>
-      <label>
-        OffSection
-        <TextInput type="number" v-model="localValue.ofsection" />
-      </label>
-      <label>
-        Immediate
-        <input type="checkbox" v-model="localValue.immediate" />
-      </label>
+  <div>
+    <template v-if="editing">
+      <TextInput type="number" class="margin-right" v-model="node" />
+      <!-- Always -1
+      <label class="margin-right"
+        >[{{ offsection }}<sub>offsection</sub>]</label
+      >
+      -->
+      <label> <input type="checkbox" v-model="immediate" />immediate</label>
     </template>
-    <template #display>
-      <label>
-        To
+    <template v-else>
+      <label class="margin-right">
         <RouterLink
-          v-if="isValidNode(localValue.node)"
-          :to="{ query: createQuery('node', localValue.node) }"
+          v-if="isValidNode(node)"
+          :to="{ query: createQuery('node', node) }"
         >
-          {{ localValue.node }}
+          {{ node }}
         </RouterLink>
-        <span v-else>{{ localValue.node }}</span>
+        <span v-else>{{ node }}</span>
       </label>
+      <!-- Always -1
+      <label class="margin-right"
+        >[{{ offsection }}<sub>offsection</sub>]</label
+      >
+      -->
       <label>
-        OffSection
-        {{ localValue.ofsection }}
-      </label>
-      <label>
-        Immediate
-        <input type="checkbox" :checked="localValue.immediate" @click.prevent />
+        <input type="checkbox" :checked="immediate" @click.prevent />immediate
       </label>
     </template>
-  </EditableContent>
+  </div>
 </template>
 <script setup lang="ts">
-import { copyEventAction, type BranchToAction, modelKey } from '@/model';
-import { useCancelableEdit } from '@/composables/useCancelableEdit';
+import { type BranchToAction, modelKey } from '@/model';
 import { createQuery } from '@/router/create-query';
-import EditableContent from '@/components/controls/EditableContent.vue';
+import { useFieldWrapper } from '@/composables/useFieldWrappers';
 import TextInput from '@/components/controls/TextInput.vue';
 import { inject } from 'vue';
 
@@ -59,12 +47,16 @@ const emit = defineEmits<{
   (event: 'update:modelValue', value: BranchToAction): void;
   (event: 'update:cancel'): void;
 }>();
-
-const { localValue, edit, cancel } = useCancelableEdit(props, emit, (action) =>
-  copyEventAction(action)
-);
-
+const emitWrapper = (event: 'update:modelValue', value: BranchToAction) => {
+  emit(event, value);
+};
+const { node, immediate } = useFieldWrapper(props, emitWrapper);
 function isValidNode(node: number) {
   return !!model?.value.data.nodes[node];
 }
 </script>
+<style scoped>
+.margin-right {
+  margin-right: 0.5em;
+}
+</style>

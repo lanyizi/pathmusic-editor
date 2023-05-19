@@ -1,34 +1,20 @@
 <template>
-  <EditableContent
-    :editing="props.editing"
-    :showButtons="false"
-    @update:ok="edit"
-    @update:cancel="cancel"
-  >
-    <template #edit>
-      <TextInput type="text" v-model="localValue.left" />
-      <SelectOption
-        :choices="Comparisons"
-        v-model="localValue.comparison"
-      ></SelectOption>
-      <TextInput type="number" v-model="localValue.right" />
+  <div>
+    <template v-if="editing">
+      <TextInput type="text" v-model="left" />
+      <SelectOption :choices="Comparisons" v-model="comparison"></SelectOption>
+      <TextInput type="number" v-model="right" />
     </template>
-    <template #display>
-      <span>{{ localValue.left }}</span>
-      <span>{{ localValue.comparison }}</span>
-      <span>{{ localValue.right }}</span>
+    <template v-else>
+      <span>{{ left }}</span>
+      <span>{{ comparison }}</span>
+      <span>{{ right }}</span>
     </template>
-  </EditableContent>
+  </div>
 </template>
 <script setup lang="ts">
-import {
-  Comparisons,
-  copyEventAction,
-  type ElseIfAction,
-  type IfAction,
-} from '@/model';
-import { useCancelableEdit } from '@/composables/useCancelableEdit';
-import EditableContent from '@/components/controls/EditableContent.vue';
+import { Comparisons, type ElseIfAction, type IfAction } from '@/model';
+import { useFieldWrapper } from '@/composables/useFieldWrappers';
 import SelectOption from '@/components/controls/SelectOption.vue';
 import TextInput from '@/components/controls/TextInput.vue';
 
@@ -43,7 +29,5 @@ const emit = defineEmits<{
   (event: 'update:cancel'): void;
 }>();
 
-const { localValue, edit, cancel } = useCancelableEdit(props, emit, (action) =>
-  copyEventAction(action)
-);
+const { left, comparison, right } = useFieldWrapper(props, emit);
 </script>

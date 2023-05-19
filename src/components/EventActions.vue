@@ -4,18 +4,22 @@
     <ol>
       <li v-for="(action, i) in props.modelValue" :key="i">
         <span class="action-title">{{ action.type }}</span>
-        <template v-if="mapComponentType[action.type]">
-          <component
-            :is="mapComponentType[action.type]"
-            :modelValue="action"
-            @update:modelValue="edit(i, $event)"
-          />
-        </template>
+        <component
+          v-if="mapComponentType[action.type]"
+          :is="mapComponentType[action.type]"
+          class="action-body"
+          :editing="props.editing"
+          :modelValue="action"
+          @update:modelValue="editItem(i, $event)"
+        />
+        <span v-else class="action-body">[Unknown_{{ action.type }}]</span>
+        <button v-if="props.editing" @click="removeItem(i)">Remove</button>
         <template v-if="'actions' in action">
           <EventActions
             class="nested-actions-block"
-            v-model="action.actions"
-            :model="props.model"
+            :editing="props.editing"
+            :modelValue="action.actions"
+            @update:modelValue="editItem(i, { ...action, actions: $event })"
           />
         </template>
       </li>
@@ -23,18 +27,18 @@
   </section>
 </template>
 <script setup lang="ts">
-import { PathMusicActionType, type PathMusicAction, type Model } from '@/model';
+import { PathMusicActionType, type PathMusicAction } from '@/model';
+import { type Component } from 'vue';
 import BranchTo from '@/components/event-actions/BranchTo.vue';
 import CalculateValue from '@/components/event-actions/CalculateValue.vue';
 import ConditionCheck from '@/components/event-actions/ConditionCheck.vue';
 import FadeVolume from '@/components/event-actions/FadeVolume.vue';
 import SetValue from '@/components/event-actions/SetValue.vue';
 import WaitTime from '@/components/event-actions/WaitTime.vue';
-import type { Component } from 'vue';
 
 const props = defineProps<{
-  model: Model;
   modelValue: PathMusicAction[];
+  editing: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -51,23 +55,27 @@ const mapComponentType: Partial<Record<PathMusicActionType, Component>> = {
   [PathMusicActionType.WaitTime]: WaitTime,
 };
 
-function edit(i: number, value: PathMusicAction) {
+function editItem(i: number, value: PathMusicAction) {
   const newValue = [...props.modelValue];
   newValue[i] = value;
+  emit('update:modelValue', newValue);
+}
+function removeItem(i: number) {
+  const newValue = [...props.modelValue];
+  newValue.splice(i, 1);
   emit('update:modelValue', newValue);
 }
 </script>
 <style scoped>
 .action-title {
   font-weight: bold;
+  margin-right: 0.5em;
 }
 li {
-  display: grid;
-  grid-template-columns: auto auto;
   grid-template-rows: auto auto;
   gap: 0 1em;
 }
-.nested-actions-block {
-  grid-column: 1 / 3;
+.action-body {
+  display: inline-block;
 }
 </style>

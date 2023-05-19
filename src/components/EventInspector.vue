@@ -1,19 +1,29 @@
 <template>
-  <div v-if="event">
-    <dl>
-      <dt>Event</dt>
-      <dl>{{ event.name }}</dl>
-      <dt>Id</dt>
-      <dl>{{ event.id }}</dl>
-    </dl>
-    <EventActions v-model="event.actions" :model="model" />
-  </div>
+  <EditableContent
+    v-if="event"
+    :editing="editing"
+    :showButtons="true"
+    @update:ok="ok"
+    @update:cancel="cancel"
+    @update:editing="editing = $event"
+  >
+    <template #always>
+      <dl>
+        <dt>Event</dt>
+        <dl>{{ event.name }}</dl>
+        <dt>Id</dt>
+        <dl>{{ event.id }}</dl>
+      </dl>
+      <EventActions :editing="editing" v-model="event.actions" />
+    </template>
+  </EditableContent>
 </template>
 <script setup lang="ts">
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import { copyEvent, modelKey } from '@/model';
 import { inject, ref, watch } from 'vue';
 import EventActions from './EventActions.vue';
+import EditableContent from './controls/EditableContent.vue';
 
 const emit = defineEmits<{
   (type: 'wantFocus'): void;
@@ -26,7 +36,7 @@ if (!model) {
 const currentEventId = useQueryNumberValue('event', -1);
 const event = ref(createCopy());
 watch(
-  currentEventId,
+  [model, currentEventId],
   () => {
     // check if is valid event id
     if (model.value.getEvent(currentEventId.value)) {
@@ -37,20 +47,19 @@ watch(
   },
   { immediate: true }
 );
-watch(
-  event,
-  (newValue, oldValue) => {
-    if (newValue && newValue === oldValue) {
-      // If new value is the same instance of old value, but it has changed,
-      // then it's changed by us, so we need to update the model.
-      // Otherwise, it's changed by the previous watcher (which watches currentEventId),
-      // so we don't need to update the model.
-      model.value.setEvent(newValue);
-    }
-  },
-  { deep: true }
-);
 
+const editing = ref(false);
+function ok() {
+  if (event.value) {
+    model.value.setEvent(event.value);
+    event.value = createCopy();
+  }
+  editing.value = false;
+}
+function cancel() {
+  event.value = createCopy();
+  editing.value = false;
+}
 function createCopy() {
   const source = model.value.getEvent(currentEventId.value);
   return source ? copyEvent(source) : null;
@@ -68,5 +77,8 @@ dt {
 }
 dd {
   grid-column-start: 2;
+}
+* {
+  white-space: nowrap;
 }
 </style>

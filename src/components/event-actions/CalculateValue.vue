@@ -1,29 +1,21 @@
 <template>
-  <EditableContent
-    :editing="props.editing"
-    :showButtons="false"
-    @update:ok="edit"
-    @update:cancel="cancel"
-  >
-    <template #edit>
-      <TextInput type="text" v-model="localValue.left" />
-      <SelectOption
-        :choices="Operators"
-        v-model="localValue.operator"
-      ></SelectOption>
-      <TextInput type="number" v-model="localValue.right" />
+  <div>
+    <template v-if="editing">
+      <TextInput type="text" v-model="left" />
+      <SelectOption :choices="Operators" v-model="operator"></SelectOption>
+      <TextInput type="number" v-model="right" />
     </template>
-    <template #display>
-      <span>{{ localValue.left }}</span>
-      <span>{{ localValue.operator }}</span>
-      <span>{{ localValue.right }}</span>
+    <template v-else>
+      <span>{{ left }}</span>
+      <span>{{ operator }}</span>
+      <span>{{ right }}</span>
     </template>
-  </EditableContent>
+  </div>
 </template>
 <script setup lang="ts">
-import { useCancelableEdit } from '@/composables/useCancelableEdit';
-import { copyEventAction, Operators, type CalculateAction } from '@/model';
-import EditableContent from '@/components/controls/EditableContent.vue';
+import { Operators, type CalculateAction } from '@/model';
+import { useFieldWrapper } from '@/composables/useFieldWrappers';
+import SelectOption from '@/components/controls/SelectOption.vue';
 import TextInput from '@/components/controls/TextInput.vue';
 
 const props = defineProps<{
@@ -36,7 +28,5 @@ const emit = defineEmits<{
   (event: 'update:cancel'): void;
 }>();
 
-const { localValue, edit, cancel } = useCancelableEdit(props, emit, (action) =>
-  copyEventAction(action)
-);
+const { left, operator, right } = useFieldWrapper(props, emit);
 </script>

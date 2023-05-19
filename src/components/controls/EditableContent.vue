@@ -1,23 +1,18 @@
 <template>
   <div>
-    <div>
-      <slot v-if="props.editing" name="edit"></slot>
-      <slot v-else name="display"></slot>
-    </div>
     <template v-if="showButtons">
-      <button
-        v-if="!props.editing"
-        key="Edit"
-        class="edit-button"
-        @click="edit"
-      >
-        Edit
-      </button>
+      <template v-if="!props.editing">
+        <button key="New" class="edit-button" @click="create">New</button>
+        <button key="Edit" class="edit-button" @click="edit">Edit</button>
+      </template>
       <template v-else>
         <button class="edit-button" key="Ok" @click="ok">OK</button>
         <button class="edit-button" key="Cancel" @click="cancel">Cancel</button>
       </template>
     </template>
+    <slot v-if="props.editing" name="edit"></slot>
+    <slot v-else name="display"></slot>
+    <slot name="always"></slot>
   </div>
 </template>
 <script setup lang="ts">
@@ -26,11 +21,15 @@ const props = defineProps<{
   showButtons: boolean;
 }>();
 const emit = defineEmits<{
+  (event: 'update:new'): void;
   (event: 'update:editing', value: boolean): void;
   (event: 'update:ok'): void;
   (event: 'update:cancel'): void;
+  (event: 'update:remove'): void;
 }>();
-
+function create() {
+  emit('update:new');
+}
 function edit() {
   emit('update:editing', true);
 }
@@ -45,6 +44,6 @@ function cancel() {
 </script>
 <style scoped>
 .edit-button {
-  margin-left: 0.5em;
+  margin-right: 0.5em;
 }
 </style>

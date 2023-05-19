@@ -70,6 +70,14 @@ export type Comparison = (typeof Comparisons)[number];
 export const Operators = ['+=', '-=', '*=', '/=', '%='] as const;
 export type Operator = (typeof Operators)[number];
 
+export const FadeTypes = [
+  'PATH_FADE_LINEAR',
+  'PATH_FADE_EQPOWER',
+  'PATH_FADE_EXPONENTIAL',
+  'PATH_FADE_COSINE',
+] as const;
+export type FadeType = (typeof FadeTypes)[number];
+
 interface BasePathMusicAction {
   type: PathMusicActionType;
   track?: number;
@@ -126,7 +134,7 @@ export interface WaitTimeAction extends BasePathMusicAction {
 export interface BranchToAction extends BasePathMusicAction {
   type: PathMusicActionType.BranchTo;
   node: number;
-  ofsection: number;
+  offsection: number;
   immediate: boolean;
   track: number;
 }
@@ -134,7 +142,7 @@ export interface BranchToAction extends BasePathMusicAction {
 export interface FadeAction extends BasePathMusicAction {
   type: PathMusicActionType.Fade;
   tovol: number;
-  id: string;
+  id: FadeType;
   flip: number;
   ms: number;
   track: number;
@@ -163,9 +171,10 @@ export function copyNode(node: Immutable<PathMusicNode>) {
 }
 
 export function copyEventAction<T extends PathMusicAction>(
-  action: Immutable<T>
+  action: Immutable<T>,
+  shallow?: boolean
 ): T {
-  if ('actions' in action) {
+  if (!shallow && 'actions' in action) {
     return {
       ...action,
       actions: action.actions.map((a) => copyEventAction(a)),
@@ -177,7 +186,7 @@ export function copyEventAction<T extends PathMusicAction>(
 export function copyEvent(event: Immutable<PathMusicEvent>) {
   return {
     ...event,
-    actions: event.actions.map(copyEventAction),
+    actions: event.actions.map((a) => copyEventAction(a)),
   };
 }
 
