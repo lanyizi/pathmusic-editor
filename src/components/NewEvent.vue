@@ -14,8 +14,6 @@
           :modelValue="name"
           @update:modelValue="updateModelValue"
           @update:cancel="cancel"
-          :state="editState"
-          @state="editState = $event"
         />
       </label>
       <br />
