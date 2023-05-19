@@ -1,4 +1,5 @@
 <!-- From https://github.com/chyj4747/vue3-golden-layout-virtualcomponent -->
+<!-- Layout Manager Utility -->
 
 <template>
   <div style="position: relative">
