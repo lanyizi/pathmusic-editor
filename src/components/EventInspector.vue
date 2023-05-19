@@ -1,22 +1,20 @@
 <template>
-  <EditableContent
-    v-if="event"
-    :editing="editing"
-    :showButtons="true"
-    @update:ok="ok"
-    @update:cancel="cancel"
-    @update:editing="editing = $event"
-  >
-    <template #always>
-      <dl>
-        <dt>Event</dt>
-        <dl>{{ event.name }}</dl>
-        <dt>Id</dt>
-        <dl>{{ event.id }}</dl>
-      </dl>
-      <EventActions :editing="editing" v-model="event.actions" />
-    </template>
-  </EditableContent>
+  <div v-if="event">
+    <EditableContent
+      :editing="editing"
+      @update:ok="ok"
+      @update:cancel="cancel"
+      @update:editing="editing = $event"
+    >
+    </EditableContent>
+    <dl>
+      <dt>Event</dt>
+      <dl>{{ event.name }}</dl>
+      <dt>Id</dt>
+      <dl>{{ event.id }}</dl>
+    </dl>
+    <EventActions :editing="editing" v-model="event.actions" />
+  </div>
 </template>
 <script setup lang="ts">
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
