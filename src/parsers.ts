@@ -5,6 +5,8 @@ import {
   type PathMusicEvent,
   PathMusicActionType,
   type PathMusicAction,
+  Comparisons,
+  Operators,
 } from '@/model';
 import type { Immutable } from '@/immutable';
 
@@ -156,7 +158,7 @@ event: {
   ],
 },
   */
-  function tryParseActionArguments(action: string, name: string) {
+  function parseActionArguments(action: string, name: string) {
     if (!action.startsWith(`${name}(`)) {
       throw new Error(`Expected ${name} in ${action}`);
     }
@@ -177,6 +179,40 @@ event: {
         return Number(string(name, index));
       },
     };
+  }
+
+  function parseActionOperation<Operation extends string>(
+    action: string,
+    operations: readonly Operation[],
+    name?: string
+  ) {
+    if (name) {
+      if (!action.startsWith(`${name}(`)) {
+        throw new Error(`Expected ${name} in ${action}`);
+      }
+      action = action.slice(`${name}(`.length, -')'.length);
+    }
+    let includeLength = 0;
+    let result;
+    for (const operation of operations) {
+      if (!action.includes(operation)) {
+        continue;
+      }
+      if (operation.length < includeLength) {
+        continue;
+      }
+      const [left, right] = action.split(operation).map((s) => s.trim());
+      result = {
+        left,
+        right,
+        operator: operation as Operation,
+      };
+      includeLength = operation.length;
+    }
+    if (!result) {
+      throw new Error(`Expected ${operations.join(', ')} in ${action}`);
+    }
+    return result;
   }
 
   enum ParseState {
@@ -262,11 +298,13 @@ event: {
           return trackId;
         }
         if (action.startsWith('if(')) {
-          const condition = action.slice('if('.length, -')'.length);
+          const condition = parseActionOperation(action, Comparisons, 'if');
           const actions: PathMusicAction[] = [];
           actionsStack[actionsStack.length - 1].push({
             type: PathMusicActionType.If,
-            condition,
+            left: condition.left,
+            comparison: condition.operator,
+            right: Number(condition.right),
             actions,
             track: getTrackId(comment),
           });
@@ -275,11 +313,17 @@ event: {
         }
         if (action.startsWith('else if(')) {
           actionsStack.pop();
-          const condition = action.slice('else if('.length, -')'.length);
+          const condition = parseActionOperation(
+            action,
+            Comparisons,
+            'else if'
+          );
           const actions: PathMusicAction[] = [];
           actionsStack[actionsStack.length - 1].push({
             type: PathMusicActionType.ElseIf,
-            condition,
+            left: condition.left,
+            comparison: condition.operator,
+            right: Number(condition.right),
             actions,
             track: getTrackId(comment),
           });
@@ -302,7 +346,7 @@ event: {
           continue;
         }
         if (action.startsWith('branchto(')) {
-          const getArg = tryParseActionArguments(action, 'branchto');
+          const getArg = parseActionArguments(action, 'branchto');
           const node = getArg.number('node', 0);
           if (node > 0 && !nodes[node - 1]) {
             throw new Error(`Invalid node id in line ${i + 1}: ${line}`);
@@ -317,7 +361,7 @@ event: {
           continue;
         }
         if (action.startsWith('wait(')) {
-          const getArg = tryParseActionArguments(action, 'wait');
+          const getArg = parseActionArguments(action, 'wait');
           const millisecs = getArg.string('millisecs', 1);
           actionsStack[actionsStack.length - 1].push({
             type: PathMusicActionType.WaitTime,
@@ -331,7 +375,7 @@ event: {
           continue;
         }
         if (action.startsWith('fade(')) {
-          const getArg = tryParseActionArguments(action, 'fade');
+          const getArg = parseActionArguments(action, 'fade');
           actionsStack[actionsStack.length - 1].push({
             type: PathMusicActionType.Fade,
             tovol: getArg.number('tovol', 0),
@@ -343,10 +387,11 @@ event: {
           continue;
         }
         if (action.includes('=') && !action.includes('(')) {
-          const equalSignIndex = action.indexOf('=');
-          const operator = action.slice(equalSignIndex - 1, equalSignIndex + 1);
-          if (['+=', '-=', '*=', '/=', '%='].includes(operator)) {
-            const [left, right] = action.split(operator).map((s) => s.trim());
+          if (Operators.some((o) => action.includes(o))) {
+            const { left, right, operator } = parseActionOperation(
+              action,
+              Operators
+            );
             actionsStack[actionsStack.length - 1].push({
               type: PathMusicActionType.Calculate,
               left,
@@ -354,15 +399,16 @@ event: {
               right: Number(right),
               track: getTrackId(comment),
             });
-          } else {
-            const [left, right] = action.split('=').map((s) => s.trim());
-            actionsStack[actionsStack.length - 1].push({
-              type: PathMusicActionType.SetValue,
-              left,
-              right: right === 'PATH_RANDOMSHORT' ? right : Number(right),
-              track: getTrackId(comment),
-            });
+            continue;
           }
+
+          const { left, right } = parseActionOperation(action, ['=']);
+          actionsStack[actionsStack.length - 1].push({
+            type: PathMusicActionType.SetValue,
+            left,
+            right: right === 'PATH_RANDOMSHORT' ? right : Number(right),
+            track: getTrackId(comment),
+          });
           continue;
         }
         throw new Error(`Unknown action in line ${i + 1}: ${line}`);
@@ -440,10 +486,10 @@ export function dumpEvents(
           result.push(`\t\tend if`);
           break;
         case PathMusicActionType.If:
-          result.push(`\t\tif(${action.condition}) #${action.track}`);
-          break;
         case PathMusicActionType.ElseIf:
-          result.push(`\t\telse if(${action.condition}) #${action.track}`);
+          result.push(
+            `\t\t${action.type}(${action.left}${action.comparison}${action.right}) #${action.track}`
+          );
           break;
         case PathMusicActionType.Else:
           result.push(`\t\telse #${action.track}`);

@@ -42,8 +42,8 @@ export interface PathMusicEvent {
 export enum PathMusicActionType {
   // condition action
   If = 'if',
+  ElseIf = 'else if',
   Else = 'else',
-  ElseIf = 'elseif',
   // all other actions
   WaitTime = 'waittime',
   WaitBeat = 'waitbeat',
@@ -64,11 +64,29 @@ export enum PathMusicActionType {
   StretchFade = 'stretchfade',
 }
 
+export const Comparisons = ['==', '!=', '>', '<', '>=', '<='] as const;
+export type Comparison = (typeof Comparisons)[number];
+
+export const Operators = ['+=', '-=', '*=', '/=', '%='] as const;
+export type Operator = (typeof Operators)[number];
+
 interface BasePathMusicAction {
   type: PathMusicActionType;
   track?: number;
 }
+interface PathMusicConditionCheck extends BasePathMusicAction {
+  type: PathMusicActionType.If | PathMusicActionType.ElseIf;
+  left: string;
+  comparison: Comparison;
+  right: number;
+  track: number;
+}
+
 interface PathMusicConditionAction extends BasePathMusicAction {
+  type:
+    | PathMusicActionType.If
+    | PathMusicActionType.Else
+    | PathMusicActionType.ElseIf;
   actions: PathMusicAction[];
   track: number;
 }
@@ -83,18 +101,20 @@ export type PathMusicAction =
   | SetValueAction
   | CalculateAction;
 
-export interface IfAction extends PathMusicConditionAction {
+export interface IfAction
+  extends PathMusicConditionCheck,
+    PathMusicConditionAction {
   type: PathMusicActionType.If;
-  condition: string;
+}
+
+export interface ElseIfAction
+  extends PathMusicConditionCheck,
+    PathMusicConditionAction {
+  type: PathMusicActionType.ElseIf;
 }
 
 export interface ElseAction extends PathMusicConditionAction {
   type: PathMusicActionType.Else;
-}
-
-export interface ElseIfAction extends PathMusicConditionAction {
-  type: PathMusicActionType.ElseIf;
-  condition: string;
 }
 
 export interface WaitTimeAction extends BasePathMusicAction {
@@ -117,19 +137,22 @@ export interface FadeAction extends BasePathMusicAction {
   id: string;
   flip: number;
   ms: number;
+  track: number;
 }
 
 export interface SetValueAction extends BasePathMusicAction {
   type: PathMusicActionType.SetValue;
   left: string;
   right: number | 'PATH_RANDOMSHORT';
+  track: number;
 }
 
 export interface CalculateAction extends BasePathMusicAction {
   type: PathMusicActionType.Calculate;
   left: string;
-  operator: string;
+  operator: Operator;
   right: number;
+  track: number;
 }
 
 export function copyNode(node: Immutable<PathMusicNode>) {
