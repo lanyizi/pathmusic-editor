@@ -162,19 +162,22 @@ export function copyNode(node: Immutable<PathMusicNode>) {
   };
 }
 
-export function copyEvent(event: Immutable<PathMusicEvent>) {
-  function copyAction(action: Immutable<PathMusicAction>): PathMusicAction {
-    if ('actions' in action) {
-      return {
-        ...action,
-        actions: action.actions.map((a) => copyAction(a)),
-      };
-    }
-    return { ...action };
+export function copyEventAction<T extends PathMusicAction>(
+  action: Immutable<T>
+): T {
+  if ('actions' in action) {
+    return {
+      ...action,
+      actions: action.actions.map((a) => copyEventAction(a)),
+    } as T;
   }
+  return { ...action } as T;
+}
+
+export function copyEvent(event: Immutable<PathMusicEvent>) {
   return {
     ...event,
-    actions: event.actions.map(copyAction),
+    actions: event.actions.map(copyEventAction),
   };
 }
 

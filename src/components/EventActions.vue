@@ -3,36 +3,20 @@
     <span class="action-title">Actions</span>
     <ol>
       <li v-for="(action, i) in props.modelValue" :key="i">
-        <dl>
-          <dt>Type</dt>
-          <dl>{{ action.type }}</dl>
-          <template v-if="action.type === PathMusicActionType.BranchTo">
-            <dt>Destination</dt>
-            <dl>
-              <RouterLink
-                v-if="isValidNode(action.node)"
-                :to="{ query: createQuery('node', action.node) }"
-              >
-                {{ action.node }}
-              </RouterLink>
-              <template v-else>{{ action.node }}</template>
-            </dl>
-            <dt>OffSection</dt>
-            <dl>{{ action.ofsection }}</dl>
-            <dt>Immediate</dt>
-            <dl>{{ action.immediate }}</dl>
-          </template>
-          <template v-else-if="'condition' in action">
-            <dt>Condition</dt>
-            <dl>{{ action.condition }}</dl>
-          </template>
-          <template v-else-if="'data' in action">
-            <dt>Data</dt>
-            <dl>{{ action.data }}</dl>
-          </template>
-        </dl>
+        <span class="action-title">{{ action.type }}</span>
+        <template v-if="mapComponentType[action.type]">
+          <component
+            :is="mapComponentType[action.type]"
+            :modelValue="action"
+            @update:modelValue="edit(i, $event)"
+          />
+        </template>
         <template v-if="'actions' in action">
-          <EventActions v-model="action.actions" :model="props.model" />
+          <EventActions
+            class="nested-actions-block"
+            v-model="action.actions"
+            :model="props.model"
+          />
         </template>
       </li>
     </ol>
@@ -40,31 +24,50 @@
 </template>
 <script setup lang="ts">
 import { PathMusicActionType, type PathMusicAction, type Model } from '@/model';
-import { createQuery } from '@/router/create-query';
+import BranchTo from '@/components/event-actions/BranchTo.vue';
+import CalculateValue from '@/components/event-actions/CalculateValue.vue';
+import ConditionCheck from '@/components/event-actions/ConditionCheck.vue';
+import FadeVolume from '@/components/event-actions/FadeVolume.vue';
+import SetValue from '@/components/event-actions/SetValue.vue';
+import WaitTime from '@/components/event-actions/WaitTime.vue';
+import type { Component } from 'vue';
 
 const props = defineProps<{
   model: Model;
   modelValue: PathMusicAction[];
 }>();
 
-function isValidNode(node: number) {
-  return !!props.model.data.nodes[node];
+const emit = defineEmits<{
+  (event: 'update:modelValue', value: PathMusicAction[]): void;
+}>();
+
+const mapComponentType: Partial<Record<PathMusicActionType, Component>> = {
+  [PathMusicActionType.BranchTo]: BranchTo,
+  [PathMusicActionType.Calculate]: CalculateValue,
+  [PathMusicActionType.If]: ConditionCheck,
+  [PathMusicActionType.ElseIf]: ConditionCheck,
+  [PathMusicActionType.Fade]: FadeVolume,
+  [PathMusicActionType.SetValue]: SetValue,
+  [PathMusicActionType.WaitTime]: WaitTime,
+};
+
+function edit(i: number, value: PathMusicAction) {
+  const newValue = [...props.modelValue];
+  newValue[i] = value;
+  emit('update:modelValue', newValue);
 }
 </script>
 <style scoped>
 .action-title {
   font-weight: bold;
 }
-dl {
+li {
   display: grid;
-  grid-template-columns: max-content auto;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
   gap: 0 1em;
 }
-dt {
-  font-weight: bold;
-  grid-column-start: 1;
-}
-dd {
-  grid-column-start: 2;
+.nested-actions-block {
+  grid-column: 1 / 3;
 }
 </style>
