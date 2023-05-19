@@ -111,14 +111,14 @@ test('invalidEventDstNode', () => {
       {
         type: PathMusicActionType.BranchTo,
         node: 65535,
-        ofsection: 0,
+        offsection: 0,
         immediate: false,
         track: 0,
       },
       {
         type: PathMusicActionType.BranchTo,
         node: id1,
-        ofsection: 0,
+        offsection: 0,
         immediate: false,
         track: 0,
       },
@@ -167,7 +167,7 @@ test('avoidAccidentalEventChanges', () => {
       {
         type: PathMusicActionType.BranchTo,
         node: id1,
-        ofsection: 0,
+        offsection: 0,
         immediate: false,
         track: 0,
       },
@@ -186,7 +186,7 @@ test('avoidAccidentalEventChanges', () => {
               {
                 type: PathMusicActionType.BranchTo,
                 node: id2,
-                ofsection: 0,
+                offsection: 0,
                 immediate: false,
                 track: 0,
               },
