@@ -7,6 +7,7 @@
       <button @click="reset">Reset</button>
     </menu>
     <nav class="top right">
+      Early development version. Some features are not yet implemented.
       <a href="https://github.com/lanyizi/pathmusic-editor">Source Code</a>
     </nav>
     <GLayout class="main" ref="GLayoutRoot"></GLayout>
