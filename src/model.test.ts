@@ -173,11 +173,15 @@ test('avoidAccidentalEventChanges', () => {
       },
       {
         type: PathMusicActionType.If,
-        condition: '',
+        left: 'x',
+        comparison: '==',
+        right: 1,
         actions: [
           {
             type: PathMusicActionType.If,
-            condition: '',
+            left: 'y',
+            comparison: '==',
+            right: 2,
             actions: [
               {
                 type: PathMusicActionType.BranchTo,
@@ -189,19 +193,13 @@ test('avoidAccidentalEventChanges', () => {
             ],
             track: 0,
           },
-          {
-            type: PathMusicActionType.EndIf,
-          },
         ],
         track: 0,
-      },
-      {
-        type: PathMusicActionType.EndIf,
       },
     ],
   };
   const event = model.addEvent(eventData);
-  expect(event.actions.length).toEqual(3);
+  expect(event.actions.length).toEqual(2);
 
   assert(event.actions[0].type === PathMusicActionType.BranchTo);
   assert(eventData.actions[0].type === PathMusicActionType.BranchTo);
@@ -223,8 +221,8 @@ test('avoidAccidentalEventChanges', () => {
   expect(event.actions[1].actions[0].actions[0].node).toEqual(id2);
 
   eventData.actions[1].actions = [];
-  expect(event.actions[1].actions.length).toEqual(2);
+  expect(event.actions[1].actions.length).toEqual(1);
 
   eventData.actions = [];
-  expect(event.actions.length).toEqual(3);
+  expect(event.actions.length).toEqual(2);
 });
