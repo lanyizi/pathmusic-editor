@@ -1,6 +1,12 @@
 <template>
   <!-- list properties of PathMusicNode -->
   <div v-if="node">
+    <EditableContent
+      :editing="editing"
+      @update:editing="editing = $event"
+      @update:ok="ok"
+      @update:cancel="cancel"
+    />
     <div>Index: {{ node.id }}</div>
     <div>
       Music: {{ node.musicIndex }}
@@ -14,25 +20,35 @@
       <h2>Branches</h2>
       <ol>
         <li v-for="(branch, i) in node.branches" :key="i">
-          <label>
-            ControlMin
-            <TextInput v-model="branch.controlmin" type="number" />
-          </label>
-          <br />
-          <label>
-            ControlMax
-            <TextInput v-model="branch.controlmax" type="number" />
-          </label>
-          <br />
-          <label>
-            Destination
-            <TextInput v-model="branch.dstnode" type="number">
+          <template v-if="editing">
+            <label>
+              controlmin
+              <TextInput v-model="branch.controlmin" type="number" />
+            </label>
+            <br />
+            <label>
+              controlmax
+              <TextInput v-model="branch.controlmax" type="number" />
+            </label>
+            <br />
+            <label>
+              destination
+              <TextInput v-model="branch.dstnode" type="number" />
+            </label>
+          </template>
+          <template v-else>
+            <span>controlmin {{ branch.controlmin }}</span>
+            <br />
+            <span> controlmax {{ branch.controlmax }}</span>
+            <br />
+            <span>
+              destination
               <RouterLink
                 :to="{ query: createQuery('node', branch.dstnode) }"
                 >{{ branch.dstnode }}</RouterLink
               >
-            </TextInput>
-          </label>
+            </span>
+          </template>
         </li>
       </ol>
     </section>
@@ -66,6 +82,7 @@ import { createQuery } from '@/router/create-query';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import { inject } from 'vue';
 import MusicPlayer from './controls/MusicPlayer.vue';
+import EditableContent from './controls/EditableContent.vue';
 
 const emit = defineEmits<{
   (type: 'wantFocus'): void;
@@ -84,7 +101,7 @@ const associatedEvents = computed(() =>
 );
 const node = ref(createCopy());
 watch(
-  currentNodeId,
+  [model, currentNodeId],
   () => {
     if (model.value.data.nodes[currentNodeId.value]) {
       emit('wantFocus');
@@ -94,25 +111,24 @@ watch(
   },
   { immediate: true }
 );
-watch(
-  node,
-  (newValue, oldValue) => {
-    if (newValue && newValue === oldValue) {
-      // If new value is the same instance of old value, but it has changed,
-      // then it's changed by us, so we need to update the model.
-      // Otherwise, it's changed by the previous watcher (which watches currentNodeId),
-      // so we don't need to update the model.
-      model.value.setNode(newValue);
-    }
-  },
-  { deep: true }
-);
 
 const musicFileName = computed(() => {
   const musicIndex = node.value?.musicIndex ?? -1;
   return musicIndex > 0 ? `${musicIndex - 1}.mp3` : null;
 });
 
+const editing = ref(false);
+function ok() {
+  if (node.value) {
+    model.value.setNode(node.value);
+    node.value = createCopy();
+  }
+  editing.value = false;
+}
+function cancel() {
+  node.value = createCopy();
+  editing.value = false;
+}
 function createCopy() {
   const source = model.value.data.nodes[currentNodeId.value];
   if (!source) {
