@@ -47,10 +47,7 @@ const emit = defineEmits<{
   (event: 'update:modelValue', value: BranchToAction): void;
   (event: 'update:cancel'): void;
 }>();
-const emitWrapper = (event: 'update:modelValue', value: BranchToAction) => {
-  emit(event, value);
-};
-const { node, immediate } = useFieldWrapper(props, emitWrapper);
+const { node, immediate } = useFieldWrapper(props, emit);
 function isValidNode(node: number) {
   return !!model?.value.data.nodes[node];
 }
