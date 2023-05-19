@@ -23,7 +23,7 @@ const props = defineProps<{
 }>();
 const { getAudio } = useAudioPlayer();
 const musicSource = ref<AudioBufferSourceNode>(
-  await getAudio('file', props.musicId)
+  await getAudio(props.musicType, props.musicId)
 );
 const musicLength = computed(() => musicSource.value?.buffer?.duration ?? 1);
 const musicStartTime = ref(0);
@@ -47,14 +47,17 @@ const musicProgress = computed({
 const playingIntervalId = ref<number | NodeJS.Timer>();
 
 onUnmounted(() => stop());
-watch(props, async () => {
-  stop();
-  musicSource.value = await getAudio('file', props.musicId);
-  musicProgress.value = 0;
-});
+watch(
+  () => [props.musicType, props.musicId] as const,
+  async ([newType, newId]) => {
+    stop();
+    musicSource.value = await getAudio(newType, newId);
+    musicProgress.value = 0;
+  }
+);
 async function play(offset: number) {
   stop();
-  musicSource.value = await getAudio('file', props.musicId);
+  musicSource.value = await getAudio(props.musicType, props.musicId);
   musicSource.value.loop = false;
   musicSource.value.onended = () => stop();
   musicStartTime.value = musicSource.value.context.currentTime;
