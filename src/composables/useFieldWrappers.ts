@@ -10,7 +10,6 @@ type Prop<T> = { modelValue: AllowedType<T> };
 type Emit<T> = (event: 'update:modelValue', value: AllowedType<T>) => void;
 
 export function useFieldWrapper<T>(props: Prop<T>, emit: Emit<T>) {
-  console.log('initial prop', props.modelValue);
   const localValue = ref({ ...props.modelValue }) as Ref<AllowedType<T>>;
   function buildComputed<K extends keyof T>(key: K) {
     return computed({
