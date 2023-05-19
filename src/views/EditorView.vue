@@ -31,14 +31,27 @@ const layoutConfig: LayoutConfig = {
     type: ItemType.row,
     content: [
       {
-        type: 'component',
-        title: 'Event Inspector',
-        header: {
-          show: 'top',
-        },
-        componentType: 'EventInspector',
+        type: 'stack',
+        content: [
+          {
+            type: 'component',
+            title: 'Event Inspector',
+            header: {
+              show: 'top',
+            },
+            componentType: 'EventInspector',
+          } as ComponentItemConfig,
+          {
+            type: 'component',
+            title: 'Event List',
+            header: {
+              show: 'top',
+            },
+            componentType: 'EventList',
+          } as ComponentItemConfig,
+        ],
         width: 20,
-      } as ComponentItemConfig,
+      },
       {
         type: 'stack',
         content: [
