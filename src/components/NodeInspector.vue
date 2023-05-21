@@ -8,8 +8,12 @@
       @update:cancel="cancel"
     />
     <div>Index: {{ node.id }}</div>
-    <div>
-      Music: {{ node.musicIndex }}
+    <label v-if="editing">
+      Music
+      <TextInput v-model="node.musicIndex" type="number" />
+    </label>
+    <div v-else>
+      Music {{ node.musicIndex }}
       <span v-if="musicFileName">[{{ musicFileName }}]</span>
     </div>
     <Suspense v-if="musicFileName">
@@ -61,6 +65,9 @@
           </RouterLink>
         </li>
       </ol>
+      <ul v-if="!sourcesByBranches.length">
+        <li>None</li>
+      </ul>
     </section>
     <section>
       <h2>Associated Events</h2>
@@ -71,7 +78,30 @@
           </RouterLink>
         </li>
       </ol>
+      <ul v-if="!associatedEvents.length">
+        <li>None</li>
+      </ul>
     </section>
+    <hr />
+    <dl>
+      <!--  trackID: 0, sectionID: 0, repeat: 0, routerID: 0, numbranches: 1, beats: 1, bars: 1, partID: 0, notes: 0 -->
+      <dt>Track</dt>
+      <dd>{{ node.trackID }}</dd>
+      <dt>Section</dt>
+      <dd>{{ node.sectionID }}</dd>
+      <dt>Repeat</dt>
+      <dd>{{ node.repeat }}</dd>
+      <dt>Router</dt>
+      <dd>{{ node.routerID }}</dd>
+      <dt>Beats</dt>
+      <dd>{{ node.beats }}</dd>
+      <dt>Bars</dt>
+      <dd>{{ node.bars }}</dd>
+      <dt>Part</dt>
+      <dd>{{ node.partID }}</dd>
+      <dt>Notes</dt>
+      <dd>{{ node.notes }}</dd>
+    </dl>
   </div>
 </template>
 <script setup lang="ts">
@@ -137,3 +167,21 @@ function createCopy() {
   return copyNode(source);
 }
 </script>
+<style scoped>
+hr {
+  margin: 1em 0;
+  /* border: navy; */
+  border: none;
+  border-bottom: 1px solid var(--color-link);
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  grid-gap: 0 1em;
+}
+dt::before {
+  content: '>';
+  margin-right: 0.5em;
+}
+</style>
