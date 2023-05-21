@@ -1,7 +1,6 @@
 <template>
-  <div>
-    <button @click="play(musicProgress)">Play</button>
-    <button @click="stop">Stop</button>
+  <div class="music-player">
+    <button @click="toggle">Play/Stop</button>
     <input
       type="range"
       min="0"
@@ -9,6 +8,7 @@
       step="0.1"
       v-model="musicProgress"
     />
+    <span>{{ musicProgress.toFixed(1) }} / {{ musicLength.toFixed(1) }}</span>
   </div>
 </template>
 <script setup lang="ts">
@@ -55,6 +55,13 @@ watch(
     musicProgress.value = 0;
   }
 );
+async function toggle() {
+  if (isPlaying.value) {
+    stop();
+  } else {
+    await play(musicProgressValue.value);
+  }
+}
 async function play(offset: number) {
   stop();
   musicSource.value = await getAudio(props.musicType, props.musicId);
@@ -81,3 +88,9 @@ function updateProgress() {
   musicProgressValue.value = musicStartOffset.value + timeElapsed;
 }
 </script>
+<style scoped>
+.music-player {
+  display: flex;
+  align-items: center;
+}
+</style>
