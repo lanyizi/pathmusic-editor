@@ -2,7 +2,14 @@
   <span>
     <template v-if="!props.editing">
       <button key="New" class="edit-button" @click="create">New</button>
-      <button key="Edit" class="edit-button" @click="edit">Edit</button>
+      <button
+        v-if="!props.hideEditButton"
+        key="Edit"
+        class="edit-button"
+        @click="edit"
+      >
+        Edit
+      </button>
     </template>
     <template v-else>
       <button class="edit-button" key="Ok" @click="ok">OK</button>
@@ -13,6 +20,7 @@
 <script setup lang="ts">
 const props = defineProps<{
   editing: boolean;
+  hideEditButton?: boolean;
 }>();
 const emit = defineEmits<{
   (event: 'update:new'): void;
