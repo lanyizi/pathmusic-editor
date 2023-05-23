@@ -33,6 +33,7 @@ if (!model) {
 }
 const currentEventId = useQueryNumberValue('event', -1);
 const event = ref(createCopy());
+const editing = ref(false);
 watch(
   [model, currentEventId],
   () => {
@@ -40,12 +41,12 @@ watch(
     if (model.value.getEvent(currentEventId.value)) {
       emit('wantFocus');
     }
+    cancel();
     event.value = createCopy();
   },
   { immediate: true }
 );
 
-const editing = ref(false);
 function ok() {
   if (event.value) {
     model.value.setEvent(event.value);
