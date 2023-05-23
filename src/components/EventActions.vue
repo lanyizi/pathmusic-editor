@@ -18,7 +18,12 @@
     </template>
     <ol>
       <li v-for="(action, i) in props.modelValue" :key="i">
-        <span class="action-title">{{ action.type }}</span>
+        <span class="action-title"
+          >{{ action.type
+          }}<sup v-if="action.track !== undefined">{{
+            action.track
+          }}</sup></span
+        >
         <component
           v-if="mapComponentType[action.type]"
           :is="mapComponentType[action.type]"
