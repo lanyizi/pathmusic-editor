@@ -1,9 +1,11 @@
 <template>
   <div v-if="event">
-    Track id is displayed at the right side of action type.<br />
-    For example: branchto<sup>1</sup>.<br />
-    Newly created event actions have track id 0 by default.<br />
-    So it's recommended to always use track 0.<br />
+    <div class="description">
+      Track id is displayed at the right side of action type.<br />
+      For example: branchto<sup>1</sup>.<br />
+      Newly created event actions have track id 0 by default.<br />
+      So it's recommended to always use track 0.
+    </div>
     <EditableContent
       :editing="editing"
       @update:ok="ok"
@@ -68,6 +70,10 @@ function createCopy() {
 }
 </script>
 <style scoped>
+.description {
+  font-size: 80%;
+  margin-bottom: 1em;
+}
 dl {
   display: grid;
   grid-template-columns: max-content auto;
