@@ -163,6 +163,79 @@ export interface CalculateAction extends BasePathMusicAction {
   track: number;
 }
 
+export function createEventAction(
+  type: PathMusicActionType,
+  model: Model
+): PathMusicAction {
+  if (model.data.tracks.length === 0) {
+    throw new Error('No tracks');
+  }
+  const track = 0;
+  switch (type) {
+    case PathMusicActionType.If:
+    case PathMusicActionType.ElseIf:
+      if (model.data.variables.length === 0) {
+        throw new Error('No variables');
+      }
+      return {
+        type,
+        left: `vars['${model.data.variables[0][0]}']`,
+        comparison: '==',
+        right: 0,
+        actions: [],
+        track,
+      } as IfAction | ElseIfAction;
+    case PathMusicActionType.Else:
+      return {
+        type,
+        actions: [],
+        track,
+      } as ElseAction;
+    case PathMusicActionType.WaitTime:
+      return {
+        type,
+        lowest: 0,
+        millisecs: 0,
+        track,
+      } as WaitTimeAction;
+    case PathMusicActionType.BranchTo:
+      return {
+        type,
+        node: -1,
+        offsection: -1,
+        immediate: false,
+        track,
+      } as BranchToAction;
+    case PathMusicActionType.Fade:
+      return {
+        type,
+        tovol: 0,
+        id: 'PATH_FADE_LINEAR',
+        flip: 0,
+        ms: 0,
+        track,
+      } as FadeAction;
+    case PathMusicActionType.SetValue:
+      if (model.data.variables.length === 0) {
+        throw new Error('No variables');
+      }
+      return {
+        type,
+        left: `vars['${model.data.variables[0][0]}']`,
+        right: 0,
+        track,
+      } as SetValueAction;
+    case PathMusicActionType.Calculate:
+      return {
+        type,
+        left: `vars['${model.data.variables[0][0]}']`,
+        operator: '+=',
+        right: 0,
+        track,
+      } as CalculateAction;
+  }
+  throw new Error(`Invalid action type ${type}`);
+}
 export function copyNode(node: Immutable<PathMusicNode>) {
   return {
     ...node,

@@ -1,7 +1,18 @@
-import { PathMusicActionType, createModel, type PathMusicEvent } from '@/model';
+import {
+  createModel,
+  createEventAction,
+  PathMusicActionType,
+  type PathMusicAction,
+  type PathMusicEvent,
+} from '@/model';
 import { assert, expect, test } from 'vitest';
 
-import { parseTracks, parseNodesAndRoutes, parseEvents } from '@/parsers';
+import {
+  dumpEvents,
+  parseTracks,
+  parseNodesAndRoutes,
+  parseEvents,
+} from '@/parsers';
 import tracks from '@/assets/tests/tracks.txt?raw';
 import nodesAndRoutes from '@/assets/tests/nodes.txt?raw';
 import events from '@/assets/tests/events.txt?raw';
@@ -225,4 +236,48 @@ test('avoidAccidentalEventChanges', () => {
 
   eventData.actions = [];
   expect(event.actions.length).toEqual(2);
+});
+
+test('createEventAction', () => {
+  const dumpAction = (action: PathMusicAction) => {
+    const text = dumpEvents([], [{ name: '_0x0', id: 0, actions: [action] }]);
+    return text
+      .split('\n')
+      .filter((line) => line.startsWith('\t\t'))[0]
+      .trim();
+  };
+  const track = {
+    path: 'track.mus',
+    startingsample: 0,
+    numsubbanks: 0,
+    purgemode: 0,
+    muschecksum: 0,
+    maxaram: 0,
+    maxmram: 0,
+  };
+  const model = createModel([track], [], [], [['player', 0]], []);
+  expect(
+    dumpAction(createEventAction(PathMusicActionType.BranchTo, model))
+  ).toEqual('branchto(node=-1, ofsection=-1, immediate=false) #0');
+  expect(
+    dumpAction(createEventAction(PathMusicActionType.Calculate, model))
+  ).toEqual(`vars['player']+=0 #0`);
+  expect(dumpAction(createEventAction(PathMusicActionType.If, model))).toEqual(
+    `if(vars['player']==0) #0`
+  );
+  expect(
+    dumpAction(createEventAction(PathMusicActionType.ElseIf, model))
+  ).toEqual(`else if(vars['player']==0) #0`);
+  expect(
+    dumpAction(createEventAction(PathMusicActionType.Else, model))
+  ).toEqual(`else #0`);
+  expect(
+    dumpAction(createEventAction(PathMusicActionType.Fade, model))
+  ).toEqual(`fade(tovol=0, id=PATH_FADE_LINEAR, flip=0, ms=0) #0`);
+  expect(
+    dumpAction(createEventAction(PathMusicActionType.SetValue, model))
+  ).toEqual(`vars['player']=0 #0`);
+  expect(
+    dumpAction(createEventAction(PathMusicActionType.WaitTime, model))
+  ).toEqual(`wait(lowest=0, millisecs=0) #0`);
 });
