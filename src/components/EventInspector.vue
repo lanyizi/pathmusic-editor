@@ -1,7 +1,7 @@
 <template>
   <div v-if="event">
     <div class="description">
-      Track id is displayed at the right side of action type.<br />
+      Track id is displayed on the right side of action type.<br />
       For example: branchto<sup>1</sup>.<br />
       Newly created event actions have track id 0 by default.<br />
       So it's recommended to always use track 0.
