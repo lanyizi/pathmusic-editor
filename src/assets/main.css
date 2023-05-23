@@ -53,6 +53,12 @@ button:disabled {
     color: var(--color-heading);
   }
 
+  button:disabled:hover {
+    border-color: var(--color-border);
+    background-color: var(--color-background);
+    color: var(--color-border);
+  }
+
   input[type="checkbox"]:hover {
     filter: brightness(30%);
   }

@@ -1,6 +1,21 @@
 <template>
   <section>
     <span class="action-title">Actions</span>
+    <!-- for add new event action-->
+    <template v-if="props.editing">
+      <SelectOption
+        v-if="addingNewAction"
+        :choices="mapComponentTypeKeys"
+        v-model="newActionChoice"
+      />
+      <EditableContent
+        :editing="addingNewAction"
+        :hideNewButton="true"
+        :editButtonText="'Add'"
+        @update:editing="addingNewAction = $event"
+        @update:ok="newItem"
+      />
+    </template>
     <ol>
       <li v-for="(action, i) in props.modelValue" :key="i">
         <span class="action-title">{{ action.type }}</span>
@@ -13,7 +28,24 @@
           @update:modelValue="editItem(i, $event)"
         />
         <span v-else class="action-body">[Unknown_{{ action.type }}]</span>
-        <button v-if="props.editing" @click="removeItem(i)">Remove</button>
+        <template v-if="props.editing">
+          <span class="margin-left"></span>
+          <button
+            v-if="props.editing"
+            :disabled="i === 0"
+            @click="moveItem(i, -1)"
+          >
+            ↑
+          </button>
+          <button
+            v-if="props.editing"
+            :disabled="i === props.modelValue.length - 1"
+            @click="moveItem(i, +1)"
+          >
+            ↓
+          </button>
+          <button v-if="props.editing" @click="removeItem(i)">Remove</button>
+        </template>
         <template v-if="'actions' in action">
           <EventActions
             class="nested-actions-block"
@@ -27,14 +59,23 @@
   </section>
 </template>
 <script setup lang="ts">
-import { PathMusicActionType, type PathMusicAction } from '@/model';
-import { type Component } from 'vue';
+import {
+  createEventAction,
+  modelKey,
+  PathMusicActionType,
+  type PathMusicAction,
+} from '@/model';
+import { inject, ref, watch, type Component } from 'vue';
 import BranchTo from '@/components/event-actions/BranchTo.vue';
 import CalculateValue from '@/components/event-actions/CalculateValue.vue';
 import ConditionCheck from '@/components/event-actions/ConditionCheck.vue';
 import FadeVolume from '@/components/event-actions/FadeVolume.vue';
 import SetValue from '@/components/event-actions/SetValue.vue';
 import WaitTime from '@/components/event-actions/WaitTime.vue';
+import EditableContent from '@/components/controls/EditableContent.vue';
+import SelectOption from './controls/SelectOption.vue';
+
+const model = inject(modelKey);
 
 const props = defineProps<{
   modelValue: PathMusicAction[];
@@ -54,7 +95,33 @@ const mapComponentType: Partial<Record<PathMusicActionType, Component>> = {
   [PathMusicActionType.SetValue]: SetValue,
   [PathMusicActionType.WaitTime]: WaitTime,
 };
+const mapComponentTypeKeys = Object.keys(
+  mapComponentType
+) as PathMusicActionType[];
 
+const addingNewAction = ref(false);
+const newActionChoice = ref(PathMusicActionType.BranchTo);
+// reset addingNewAction when editing is changed
+watch(
+  () => props.editing,
+  () => (addingNewAction.value = false),
+  { immediate: true }
+);
+
+function newItem() {
+  const newAction = createEventAction(
+    newActionChoice.value as PathMusicActionType,
+    model!.value
+  );
+  const newValue = [...props.modelValue, newAction];
+  emit('update:modelValue', newValue);
+}
+function moveItem(i: number, offset: number) {
+  const newValue = [...props.modelValue];
+  const [item] = newValue.splice(i, 1);
+  newValue.splice(i + offset, 0, item);
+  emit('update:modelValue', newValue);
+}
 function editItem(i: number, value: PathMusicAction) {
   const newValue = [...props.modelValue];
   newValue[i] = value;
@@ -77,5 +144,8 @@ li {
 }
 .action-body {
   display: inline-block;
+}
+.margin-left {
+  margin-left: 2em;
 }
 </style>
