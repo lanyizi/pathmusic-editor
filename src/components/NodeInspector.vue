@@ -45,7 +45,7 @@
             <template v-else>
               <span>controlmin {{ branch.controlmin }}</span>
               <br />
-              <span> controlmax {{ branch.controlmax }}</span>
+              <span>controlmax {{ branch.controlmax }}</span>
               <br />
               <span>
                 destination
@@ -147,8 +147,9 @@ watch(
 );
 
 const musicFileName = computed(() => {
-  const musicIndex = node.value?.musicIndex ?? -1;
-  return musicIndex > 0 ? `${musicIndex - 1}.mp3` : null;
+  const trackIndex = node.value?.trackID ?? NaN;
+  const musicIndex = node.value?.musicIndex ?? NaN;
+  return musicIndex > 0 ? `track${trackIndex}.${musicIndex - 1}.mp3` : null;
 });
 
 const editing = ref(false);
