@@ -44,14 +44,14 @@ const layoutConfig: LayoutConfig = {
           } as ComponentItemConfig,
           {
             type: 'component',
-            title: 'Event List',
+            title: 'Event Variables',
             header: {
               show: 'top',
             },
-            componentType: 'EventList',
+            componentType: 'EventVariableList',
           } as ComponentItemConfig,
         ],
-        width: 20,
+        width: 25,
       },
       {
         type: 'stack',
@@ -80,8 +80,16 @@ const layoutConfig: LayoutConfig = {
             },
             componentType: 'NodesGraphView',
           } as ComponentItemConfig,
+          {
+            type: 'component',
+            title: 'Event List',
+            header: {
+              show: 'top',
+            },
+            componentType: 'EventList',
+          } as ComponentItemConfig,
         ],
-        width: 60,
+        width: 55,
       },
       {
         type: 'component',
