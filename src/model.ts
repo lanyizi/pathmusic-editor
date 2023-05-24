@@ -263,6 +263,10 @@ export function copyEvent(event: Immutable<PathMusicEvent>) {
   };
 }
 
+export function copyVariables(variables: Immutable<[string, number][]>) {
+  return variables.map((v) => [...v] as [string, number]);
+}
+
 export interface Model {
   data: Immutable<{
     tracks: PathMusicTrack[];
@@ -276,10 +280,12 @@ export interface Model {
   addEvent(event: PathMusicEvent): Immutable<PathMusicEvent>;
   getEvent(id: number | string): Immutable<PathMusicEvent> | null;
   setEvent(event: PathMusicEvent): Immutable<PathMusicEvent>;
+  setVariables(variables: [string, number][]): void;
   getSourceNodesByBranches(id: number): Immutable<PathMusicNode>[];
   getSourceNodesByRouters(id: number): Immutable<PathMusicNode>[];
   getNodeAssociatedEvents(id: number): Immutable<PathMusicEvent>[];
   getBranchDestinationNodes(id: number): Immutable<PathMusicNode>[];
+  getVariableAssociatedEvents(name: string): Immutable<PathMusicEvent>[];
 }
 
 export function createModel(
@@ -346,6 +352,43 @@ export function createModel(
     }
     return results;
   });
+  const eventsFromVariables = computed(() => {
+    const results: Record<string, PathMusicEvent[]> = {};
+    const tryAddEvent = (key: string, event: PathMusicEvent) => {
+      const [, variable] = /vars\['(.*)'\]/.exec(key) ?? [];
+      if (!variable) {
+        return;
+      }
+      if (!results[variable]) {
+        results[variable] = [];
+      }
+      if (results[variable].includes(event)) {
+        return;
+      }
+      results[variable].push(event);
+    };
+    for (const event of model.events) {
+      const actionStack = [...event.actions];
+      while (actionStack.length > 0) {
+        const action = actionStack.pop()!;
+        if ('actions' in action) {
+          actionStack.push(...action.actions);
+        }
+        switch (action.type) {
+          case PathMusicActionType.If:
+          case PathMusicActionType.ElseIf:
+          case PathMusicActionType.SetValue:
+          case PathMusicActionType.Calculate:
+            tryAddEvent(action.left, event);
+            if (typeof action.right !== 'number') {
+              tryAddEvent(action.right, event);
+            }
+            break;
+        }
+      }
+    }
+    return results;
+  });
   return {
     data: model,
     addNode(musicIndex, trackId) {
@@ -390,6 +433,9 @@ export function createModel(
       model.events = newArray;
       return newArray[index];
     },
+    setVariables(variables: [string, number][]) {
+      model.variables = copyVariables(variables);
+    },
     getSourceNodesByBranches: (id) => getArrayAt(sourceNodesFromBranches, id),
     getSourceNodesByRouters: (id) => getArrayAt(sourceNodesFromRouters, id),
     getNodeAssociatedEvents: (id) => getArrayAt(eventsFromNodes, id),
@@ -398,6 +444,8 @@ export function createModel(
         .filter((branch) => branch.dstnode !== id)
         .map(({ dstnode }) => model.nodes[dstnode])
         .filter((n) => !!n),
+    getVariableAssociatedEvents: (name) =>
+      eventsFromVariables.value[name] ?? [],
   };
 }
 

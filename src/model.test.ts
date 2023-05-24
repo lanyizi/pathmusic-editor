@@ -86,6 +86,43 @@ test('modelEventLookupReal', () => {
   }
 });
 
+test('modelVariableLookupReal', () => {
+  for (const event of model.data.events) {
+    const actionStack = [...event.actions];
+    while (actionStack.length > 0) {
+      const action = actionStack.pop()!;
+      if ('actions' in action) {
+        actionStack.push(...action.actions);
+      }
+      switch (action.type) {
+        case PathMusicActionType.If:
+        case PathMusicActionType.ElseIf:
+        case PathMusicActionType.SetValue:
+        case PathMusicActionType.Calculate: {
+          const regex = /vars\['(.+)'\]/;
+          const leftMatch = regex.exec(action.left);
+          if (leftMatch) {
+            expect(
+              model.getVariableAssociatedEvents(leftMatch[1]),
+              `Variable ${leftMatch[1]}'s accociated events should contain ${event.name}`
+            ).toContain(event);
+          }
+          if (typeof action.right === 'string') {
+            const rightMatch = regex.exec(action.right);
+            if (rightMatch) {
+              expect(
+                model.getVariableAssociatedEvents(rightMatch[1]),
+                `Variable ${rightMatch[1]}'s accociated events should contain ${event.name}`
+              ).toContain(event);
+            }
+          }
+          break;
+        }
+      }
+    }
+  }
+});
+
 test('invalidBranchDstNode', () => {
   const model = createModel([], [], [], [], []);
 
