@@ -271,7 +271,7 @@ event: {
           continue;
         }
         if (line.startsWith('	eventID:')) {
-          const eventID = line.split(':')[1].trim();
+          const eventID = line.split(':')[1].trim().replace(/,$/, '');
           const actions: PathMusicAction[] = [];
           result.events.push({
             name: eventID,
@@ -481,7 +481,7 @@ export function dumpEvents(
   result.push('},');
   for (const event of events) {
     result.push(`event: {`);
-    result.push(`\teventID: ${event.name}`);
+    result.push(`\teventID: ${event.name},`);
     result.push(`\tactions:[`);
     type OutputAction = Immutable<PathMusicAction | { type: 'endif' }>;
     const actions: OutputAction[] = getNestedActions(event);

@@ -28,4 +28,9 @@ test('parseEvents', () => {
   const parsed = parseEvents(events, parsedTracks, nodes);
   const dumped = dumpEvents(parsed.variables, parsed.events);
   expect(dumped).toBe(events);
+
+  const generated = dumpEvents([], [{ name: 'gen_0x0', id: 0, actions: [] }]);
+  expect(generated).toBe(
+    'vars: {\n},\nevent: {\n\teventID: gen_0x0,\n\tactions:[\n\t],\n},\n'
+  );
 });
