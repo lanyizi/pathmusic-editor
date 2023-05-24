@@ -1,7 +1,7 @@
 <template>
   <div class="editor-view">
     <menu class="top left">
-      <h3>RA3 PathMusic Editor</h3>
+      <h1>RA3 PathMusic Editor</h1>
       <button @click="clear">New</button>
       <button @click="save">Save</button>
       <button @click="reset">Reset</button>
@@ -139,6 +139,9 @@ onMounted(async () => {
 }
 .editor-view > .graph-view {
   overflow: auto;
+}
+h1 {
+  font-size: large;
 }
 .left {
   grid-column: 1;
