@@ -23,11 +23,11 @@
   </div>
 </template>
 <script setup lang="ts">
-import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
-import { copyEvent, modelKey } from '@/model';
 import { inject, ref, watch } from 'vue';
-import EventActions from './EventActions.vue';
-import EditableContent from './controls/EditableContent.vue';
+import { copyEvent, modelKey } from '@/model';
+import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
+import EventActions from '@/components/EventActions.vue';
+import EditableContent from '@/components/controls/EditableContent.vue';
 
 const emit = defineEmits<{
   (type: 'wantFocus'): void;
