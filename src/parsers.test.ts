@@ -1,15 +1,17 @@
 import { expect, test } from 'vitest';
 import {
   parseTracks,
-  dumpTracks,
   parseNodesAndRoutes,
-  dumpNodesAndRoutes,
   parseEvents,
+  dumpTracks,
+  dumpNodesAndRoutes,
   dumpEvents,
+  dumpRa3MusicHeader,
 } from '@/parsers';
 import tracks from '@/assets/tests/tracks.txt?raw';
 import nodesAndRoutes from '@/assets/tests/nodes.txt?raw';
 import events from '@/assets/tests/events.txt?raw';
+import ra3MusicHeader from '@/assets/tests/RA3Music.h?raw';
 
 test('parseTrack', () => {
   const dumped = dumpTracks(parseTracks(tracks));
@@ -33,4 +35,9 @@ test('parseEvents', () => {
   expect(generated).toBe(
     'vars: {\n},\nevent: {\n\teventID: gen_0x0,\n\tactions:[\n\t],\n},\n'
   );
+
+  const dumpedHeader = dumpRa3MusicHeader(parsedTracks, parsed.events);
+  const sortedDumped = dumpedHeader.split('\n').sort();
+  const sortedOriginal = ra3MusicHeader.split('\n').sort();
+  expect(sortedDumped).toEqual(sortedOriginal);
 });

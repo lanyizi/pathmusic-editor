@@ -535,3 +535,32 @@ export function dumpEvents(
   }
   return result.join('\n') + '\n';
 }
+
+export function dumpRa3MusicHeader(
+  tracks: Immutable<PathMusicTrack[]>,
+  events: Immutable<PathMusicEvent[]>
+): string {
+  const eventDefines = events
+    .map((event) => event.name.split(/_(?=0x[A-Fa-f0-9]+$)/g))
+    .map(([name, id]) => [name, parseInt(id)] as [string, number])
+    .filter(([name]) => name.length > 0);
+  const trackDefines = tracks.map((track, i) => {
+    switch (`${track.path} #${i}`) {
+      case 'track.mus #0':
+        return ['PATH_TRACK_Track', 0x10000001] as [string, number];
+      case 'track-mem.mus #1':
+        return ['PATH_TRACK_Track_Mem', 0x10000002] as [string, number];
+      default:
+        throw new Error(
+          `Track modification not supported yet: ${track.path} #${i}`
+        );
+    }
+  });
+  return (
+    eventDefines
+      .concat(trackDefines)
+      .sort((a, b) => a[0].localeCompare(b[0], 'en'))
+      .map((d) => `#define ${d[0]} 0x${(0x1000000 + d[1]).toString(16)}`)
+      .join('\r\n') + '\r\n'
+  );
+}
