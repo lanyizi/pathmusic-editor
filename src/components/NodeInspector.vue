@@ -5,6 +5,7 @@
       :editing="editing"
       :hide-edit-button="!node"
       @update:editing="editing = $event"
+      @update:new="newNode"
       @update:ok="ok"
       @update:cancel="cancel"
     />
@@ -154,6 +155,9 @@ const musicFileName = computed(() => {
 });
 
 const editing = ref(false);
+function newNode() {
+  currentNodeId.value = model.value.addNode(-1, 0);
+}
 function ok() {
   if (node.value) {
     model.value.setNode(node.value);
