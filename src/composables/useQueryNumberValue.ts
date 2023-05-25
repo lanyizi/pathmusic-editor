@@ -12,7 +12,7 @@ export function useQueryNumberValue(key: string, defaultValue: number) {
       return route.query[key] ? Number(route.query[key]) : defaultValue;
     },
     set(newValue?: number) {
-      router.push(createQuery(key, newValue, defaultValue));
+      router.push({ query: createQuery(key, newValue, defaultValue) });
     },
   });
 }
