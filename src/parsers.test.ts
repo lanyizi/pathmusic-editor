@@ -36,8 +36,14 @@ test('parseEvents', () => {
     'vars: {\n},\nevent: {\n\teventID: gen_0x0,\n\tactions:[\n\t],\n},\n'
   );
 
-  const dumpedHeader = dumpRa3MusicHeader(parsedTracks, parsed.events);
+  const dumpedHeader = dumpRa3MusicHeader(parsedTracks, parsed.events).replace(
+    /\r\n/g,
+    '\n'
+  );
   const sortedDumped = dumpedHeader.split('\n').sort();
-  const sortedOriginal = ra3MusicHeader.split('\n').sort();
+  const sortedOriginal = ra3MusicHeader
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .sort();
   expect(sortedDumped).toEqual(sortedOriginal);
 });
