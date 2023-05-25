@@ -8,12 +8,12 @@
     </div>
     <EditableContent
       :editing="editing"
+      :hideNewButton="true"
       :inputInvalid="!isInputEventIdValid"
       @update:ok="ok"
       @update:cancel="cancel"
       @update:editing="editing = $event"
-    >
-    </EditableContent>
+    />
     <dl>
       <dt>Event</dt>
       <dl>
