@@ -112,7 +112,7 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from 'vue';
 import { copyNode, modelKey } from '@/model';
-import { createQuery } from '@/router/create-query';
+import { useCreateQuery } from '@/composables/useCreateQuery';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import EditableContent from '@/components/controls/EditableContent.vue';
 import MusicPlayer from '@/components/controls/MusicPlayer.vue';
@@ -126,6 +126,7 @@ const model = inject(modelKey)!;
 if (!model) {
   throw new Error('model is not provided');
 }
+const createQuery = useCreateQuery();
 const currentNodeId = useQueryNumberValue('node', -1);
 const sourcesByBranches = computed(() =>
   model.value.getSourceNodesByBranches(currentNodeId.value)

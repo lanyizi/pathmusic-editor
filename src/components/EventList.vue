@@ -9,11 +9,12 @@
 </template>
 <script setup lang="ts">
 import { modelKey } from '@/model';
-import { createQuery } from '@/router/create-query';
+import { useCreateQuery } from '@/composables/useCreateQuery';
 import { inject } from 'vue';
 
 const model = inject(modelKey);
 if (!model) {
   throw new Error('model is not provided');
 }
+const createQuery = useCreateQuery();
 </script>

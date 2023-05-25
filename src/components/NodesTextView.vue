@@ -20,17 +20,18 @@
   </div>
 </template>
 <script setup lang="ts">
-import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import { groupModelNodes } from '@/group-model-nodes';
 import type { Immutable } from '@/immutable';
 import { modelKey, type PathMusicNode } from '@/model';
-import { createQuery } from '@/router/create-query';
+import { useCreateQuery } from '@/composables/useCreateQuery';
+import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import { computed, inject } from 'vue';
 
 const model = inject(modelKey)!;
 if (!model) {
   throw new Error('model is not provided');
 }
+const createQuery = useCreateQuery();
 const selectedId = useQueryNumberValue('node', -1);
 const nodeGroups = computed(() => {
   return groupModelNodes(model.value).map((group) => {

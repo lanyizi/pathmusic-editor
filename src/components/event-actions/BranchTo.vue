@@ -32,7 +32,7 @@
 </template>
 <script setup lang="ts">
 import { type BranchToAction, modelKey } from '@/model';
-import { createQuery } from '@/router/create-query';
+import { useCreateQuery } from '@/composables/useCreateQuery';
 import { useFieldWrapper } from '@/composables/useFieldWrappers';
 import TextInput from '@/components/controls/TextInput.vue';
 import { inject } from 'vue';
@@ -47,6 +47,7 @@ const emit = defineEmits<{
   (event: 'update:modelValue', value: BranchToAction): void;
   (event: 'update:cancel'): void;
 }>();
+const createQuery = useCreateQuery();
 const { node, immediate } = useFieldWrapper(props, emit);
 function isValidNode(node: number) {
   return !!model?.value.data.nodes[node];

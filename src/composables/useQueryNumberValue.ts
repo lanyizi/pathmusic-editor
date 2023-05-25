@@ -1,10 +1,11 @@
-import { createQuery } from '@/router/create-query';
+import { useCreateQuery } from '@/composables/useCreateQuery';
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 export function useQueryNumberValue(key: string, defaultValue: number) {
   const route = useRoute();
   const router = useRouter();
+  const createQuery = useCreateQuery();
 
   return computed({
     get() {
