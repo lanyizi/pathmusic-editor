@@ -8,6 +8,7 @@
     </div>
     <EditableContent
       :editing="editing"
+      :inputInvalid="!isInputEventIdValid"
       @update:ok="ok"
       @update:cancel="cancel"
       @update:editing="editing = $event"
@@ -15,7 +16,12 @@
     </EditableContent>
     <dl>
       <dt>Event</dt>
-      <dl>{{ event.name }}</dl>
+      <dl>
+        <template v-if="!editing">{{ event.name }}</template
+        ><template v-else>
+          <TextInput type="text" v-model="event.name" long />
+        </template>
+      </dl>
       <dt>Id</dt>
       <dl>{{ event.id }}</dl>
     </dl>
@@ -23,11 +29,12 @@
   </div>
 </template>
 <script setup lang="ts">
-import { inject, ref, watch } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
 import { copyEvent, modelKey } from '@/model';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import EventActions from '@/components/EventActions.vue';
 import EditableContent from '@/components/controls/EditableContent.vue';
+import TextInput from './controls/TextInput.vue';
 
 const emit = defineEmits<{
   (type: 'wantFocus'): void;
@@ -40,6 +47,24 @@ if (!model) {
 const currentEventId = useQueryNumberValue('event', -1);
 const event = ref(createCopy());
 const editing = ref(false);
+const isInputEventIdValid = computed(() => {
+  const newId = parseId(event.value?.name);
+  if (isNaN(newId)) {
+    return false;
+  }
+  if (newId <= 0 || newId > 0xffffff) {
+    return false;
+  }
+  if (newId === event.value!.id) {
+    // allowed if id is not changed
+    return true;
+  }
+  // modify existing event id is not supported yet
+  return false;
+  // should not conflict with other existing event id
+  // return !model.value.getEvent(newId);
+});
+
 watch(
   [model, currentEventId],
   () => {
@@ -67,6 +92,13 @@ function cancel() {
 function createCopy() {
   const source = model.value.getEvent(currentEventId.value);
   return source ? copyEvent(source) : null;
+}
+function parseId(name?: string) {
+  const match = name?.match(/_(0x[A-Fa-f0-9]+)$/);
+  if (!match) {
+    return NaN;
+  }
+  return parseInt(match[1]);
 }
 </script>
 <style scoped>

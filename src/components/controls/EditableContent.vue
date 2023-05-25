@@ -19,7 +19,14 @@
       </button>
     </template>
     <template v-else>
-      <button class="edit-button" key="Ok" @click="ok">OK</button>
+      <button
+        class="edit-button"
+        key="Ok"
+        :disabled="props.inputInvalid"
+        @click="ok"
+      >
+        OK
+      </button>
       <button class="edit-button" key="Cancel" @click="cancel">Cancel</button>
     </template>
   </span>
@@ -30,6 +37,7 @@ const props = defineProps<{
   hideEditButton?: boolean;
   hideNewButton?: boolean;
   editButtonText?: string;
+  inputInvalid?: boolean;
 }>();
 const emit = defineEmits<{
   (event: 'update:new'): void;
