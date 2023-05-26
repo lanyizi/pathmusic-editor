@@ -32,7 +32,11 @@
           :modelValue="action"
           @update:modelValue="editItem(i, $event)"
         />
-        <span v-else class="action-body">[Unknown_{{ action.type }}]</span>
+        <span v-else class="action-body"
+          ><template v-if="action.type !== PathMusicActionType.Else"
+            >[Unknown_{{ action.type }}]</template
+          ></span
+        >
         <template v-if="props.editing">
           <span class="margin-left"></span>
           <button
