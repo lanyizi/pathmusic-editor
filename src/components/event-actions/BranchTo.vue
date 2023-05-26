@@ -1,18 +1,21 @@
 <template>
   <div>
     <template v-if="editing">
-      <TextInput type="number" class="margin-right" v-model="node" />
+      <TextInput type="number" v-model="node" />
       <!-- Always -1
-      <label class="margin-right"
+      <label
         >[{{ offsection }}<sub>offsection</sub>]</label
       >
       -->
-      <label> <input type="checkbox" v-model="immediate" />immediate</label>
+      <label class="margin-left"
+        ><input type="checkbox" v-model="immediate" />immediate</label
+      >
     </template>
     <template v-else>
-      <label class="margin-right">
+      <label>
         <RouterLink
-          v-if="isValidNode(node)"
+          v-if="isValidNode"
+          :class="{ warning: invalidTrack }"
           :to="{ query: createQuery('node', node) }"
         >
           {{ node }}
@@ -20,22 +23,23 @@
         <span v-else>{{ node }}</span>
       </label>
       <!-- Always -1
-      <label class="margin-right"
+      <label
         >[{{ offsection }}<sub>offsection</sub>]</label
       >
       -->
-      <label>
+      <label class="margin-left">
         <input type="checkbox" :checked="immediate" @click.prevent />immediate
       </label>
     </template>
+    <span v-if="invalidTrack" class="margin-left warning">⚠Track Mismatch</span>
   </div>
 </template>
 <script setup lang="ts">
+import { computed, inject } from 'vue';
 import { type BranchToAction, modelKey } from '@/model';
 import { useCreateQuery } from '@/composables/useCreateQuery';
 import { useFieldWrapper } from '@/composables/useFieldWrappers';
 import TextInput from '@/components/controls/TextInput.vue';
-import { inject } from 'vue';
 
 const model = inject(modelKey);
 const props = defineProps<{
@@ -49,12 +53,17 @@ const emit = defineEmits<{
 }>();
 const createQuery = useCreateQuery();
 const { node, immediate } = useFieldWrapper(props, emit);
-function isValidNode(node: number) {
-  return !!model?.value.data.nodes[node];
-}
+const nodeObject = computed(() => model?.value.data.nodes[node.value]);
+const isValidNode = computed(() => !!nodeObject.value);
+const invalidTrack = computed(
+  () => nodeObject.value && props.modelValue.track !== nodeObject.value.trackID
+);
 </script>
 <style scoped>
-.margin-right {
-  margin-right: 0.5em;
+.margin-left {
+  margin-left: 0.5em;
+}
+.warning {
+  color: red;
 }
 </style>
