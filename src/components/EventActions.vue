@@ -3,11 +3,13 @@
     <span class="action-title">Actions</span>
     <!-- for add new event action-->
     <template v-if="props.editing">
-      <SelectOption
-        v-if="addingNewAction"
-        :choices="mapComponentTypeKeys"
-        v-model="newActionChoice"
-      />
+      <template v-if="addingNewAction">
+        <SelectOption
+          :choices="mapComponentTypeKeys"
+          v-model="newActionChoice"
+        />
+        <TrackSelectOption v-model="newActionTrack" />
+      </template>
       <EditableContent
         :editing="addingNewAction"
         :hideNewButton="true"
@@ -81,6 +83,7 @@ import SetValue from '@/components/event-actions/SetValue.vue';
 import WaitTime from '@/components/event-actions/WaitTime.vue';
 import EditableContent from '@/components/controls/EditableContent.vue';
 import SelectOption from '@/components/controls/SelectOption.vue';
+import TrackSelectOption from '@/components/TrackSelectOption.vue';
 
 const model = inject(modelKey)!;
 if (!model) {
@@ -112,6 +115,7 @@ const mapComponentTypeKeys = Object.keys(
 
 const addingNewAction = ref(false);
 const newActionChoice = ref(PathMusicActionType.BranchTo);
+const newActionTrack = ref(0);
 // reset addingNewAction when editing is changed
 watch(
   () => props.editing,
@@ -129,6 +133,7 @@ function newItem() {
     newActionChoice.value as PathMusicActionType,
     model.value
   );
+  newAction.track = newActionTrack.value;
   const newValue = [...props.modelValue, newAction];
   emit('update:modelValue', newValue);
 }
