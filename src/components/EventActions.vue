@@ -18,12 +18,9 @@
     </template>
     <ol>
       <li v-for="(action, i) in props.modelValue" :key="i">
-        <span class="action-title"
-          >{{ action.type
-          }}<sup v-if="action.track !== undefined">{{
-            action.track
-          }}</sup></span
-        >
+        <span class="action-title" :style="getActionColor(action)">{{
+          action.type
+        }}</span>
         <component
           v-if="mapComponentType[action.type]"
           :is="mapComponentType[action.type]"
@@ -60,6 +57,7 @@
             class="nested-actions-block"
             :editing="props.editing"
             :modelValue="action.actions"
+            :colors="props.colors"
             @update:modelValue="editItem(i, { ...action, actions: $event })"
           />
         </template>
@@ -82,13 +80,17 @@ import FadeVolume from '@/components/event-actions/FadeVolume.vue';
 import SetValue from '@/components/event-actions/SetValue.vue';
 import WaitTime from '@/components/event-actions/WaitTime.vue';
 import EditableContent from '@/components/controls/EditableContent.vue';
-import SelectOption from './controls/SelectOption.vue';
+import SelectOption from '@/components/controls/SelectOption.vue';
 
-const model = inject(modelKey);
+const model = inject(modelKey)!;
+if (!model) {
+  throw new Error('model is not provided');
+}
 
 const props = defineProps<{
   modelValue: PathMusicAction[];
   editing: boolean;
+  colors: string[];
 }>();
 
 const emit = defineEmits<{
@@ -117,10 +119,15 @@ watch(
   { immediate: true }
 );
 
+function getActionColor(action: PathMusicAction) {
+  const color = props.colors[action.track ?? -1];
+  return color ? { color } : {};
+}
+
 function newItem() {
   const newAction = createEventAction(
     newActionChoice.value as PathMusicActionType,
-    model!.value
+    model.value
   );
   const newValue = [...props.modelValue, newAction];
   emit('update:modelValue', newValue);

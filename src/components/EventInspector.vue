@@ -1,10 +1,16 @@
 <template>
   <div v-if="event">
     <div class="description">
-      Track id is displayed on the right side of action type.<br />
-      For example: branchto<sup>1</sup>.<br />
-      Newly created event actions have track id 0 by default.<br />
-      So it's recommended to always use track 0.
+      Tracks:
+      <ol start="0">
+        <li
+          v-for="(track, i) in model.data.tracks"
+          :key="i"
+          :style="{ color: trackColors[i] }"
+        >
+          {{ track.path }}
+        </li>
+      </ol>
     </div>
     <EditableContent
       :editing="editing"
@@ -25,7 +31,11 @@
       <dt>Id</dt>
       <dl>{{ event.id }}</dl>
     </dl>
-    <EventActions :editing="editing" v-model="event.actions" />
+    <EventActions
+      :editing="editing"
+      :colors="trackColors"
+      v-model="event.actions"
+    />
   </div>
 </template>
 <script setup lang="ts">
@@ -63,6 +73,15 @@ const isInputEventIdValid = computed(() => {
   return false;
   // should not conflict with other existing event id
   // return !model.value.getEvent(newId);
+});
+
+const trackColors = computed(() => {
+  const colors: string[] = [];
+  const tracksCount = model.value.data.tracks.length;
+  for (let i = 0; i < tracksCount; i++) {
+    colors.push(`hsl(${(i * 360) / tracksCount}, 100%, 50%)`);
+  }
+  return colors;
 });
 
 watch(
