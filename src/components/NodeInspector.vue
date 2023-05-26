@@ -15,7 +15,7 @@
         <dd>{{ node.id }}</dd>
         <dt>Track</dt>
         <dd v-if="editing">
-          <PathMusicTrackSelectOption v-model="node.trackID" />
+          <TrackSelectOption v-model="node.trackID" />
         </dd>
         <dd v-else>{{ model.data.tracks[node.trackID].path }}</dd>
         <dt>Music</dt>
@@ -116,7 +116,7 @@ import { useCreateQuery } from '@/composables/useCreateQuery';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import EditableContent from '@/components/controls/EditableContent.vue';
 import MusicPlayer from '@/components/controls/MusicPlayer.vue';
-import PathMusicTrackSelectOption from '@/components/PathMusicTrackSelectOption.vue';
+import TrackSelectOption from '@/components/TrackSelectOption.vue';
 import TextInput from '@/components/controls/TextInput.vue';
 
 const emit = defineEmits<{
