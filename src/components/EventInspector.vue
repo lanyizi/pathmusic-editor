@@ -79,7 +79,7 @@ const trackColors = computed(() => {
   const colors: string[] = [];
   const tracksCount = model.value.data.tracks.length;
   for (let i = 0; i < tracksCount; i++) {
-    colors.push(`hsl(${(i * 360) / tracksCount}, 100%, 50%)`);
+    colors.push(`hsl(${(i * 360 + 450) / tracksCount}, 50%, 50%)`);
   }
   return colors;
 });
