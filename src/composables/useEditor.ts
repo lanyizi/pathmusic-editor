@@ -5,6 +5,7 @@ import { createModel, modelKey, type Model } from '@/model';
 import {
   dumpEvents,
   dumpNodesAndRoutes,
+  dumpRa3MusicHeader,
   dumpTracks,
   parseEvents,
   parseNodesAndRoutes,
@@ -76,10 +77,12 @@ export function useEditor() {
     const rawEvents = dumpEvents(variables, events);
     const rawNodes = dumpNodesAndRoutes(nodes, routers);
     const rawTracks = dumpTracks(tracks);
+    const ra3MusicHeader = dumpRa3MusicHeader(tracks, events);
     originalData.value = [rawTracks, rawNodes, rawEvents];
     await fileStore.saveText('events.txt', rawEvents);
     await fileStore.saveText('nodes.txt', rawNodes);
     await fileStore.saveText('tracks.txt', rawTracks);
+    await fileStore.saveText('ra3music/pc/RA3Music.0.h', ra3MusicHeader);
   }
 
   async function reset() {
