@@ -550,6 +550,8 @@ export function dumpRa3MusicHeader(
         return ['PATH_TRACK_Track', 0x10000001] as [string, number];
       case 'track-mem.mus #1':
         return ['PATH_TRACK_Track_Mem', 0x10000002] as [string, number];
+      case 'track-corona.mus #2':
+        return ['PATH_TRACK_Track_Corona', 0x10000003] as [string, number];
       default:
         throw new Error(
           `Track modification not supported yet: ${track.path} #${i}`
