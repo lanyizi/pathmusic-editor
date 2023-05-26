@@ -10,15 +10,23 @@
       @update:cancel="cancel"
     />
     <template v-if="node">
-      <div>Index: {{ node.id }}</div>
-      <label v-if="editing">
-        Music
-        <TextInput v-model="node.musicIndex" type="number" />
-      </label>
-      <div v-else>
-        Music {{ node.musicIndex }}
-        <span v-if="musicFileName">[{{ musicFileName }}]</span>
-      </div>
+      <dl>
+        <dt>Index</dt>
+        <dd>{{ node.id }}</dd>
+        <dt>Track</dt>
+        <dd v-if="editing">
+          <PathMusicTrackSelectOption v-model="node.trackID" />
+        </dd>
+        <dd v-else>{{ model.data.tracks[node.trackID].path }}</dd>
+        <dt>Music</dt>
+        <dd v-if="editing">
+          <TextInput v-model="node.musicIndex" type="number" />
+        </dd>
+        <dd v-else>
+          {{ node.musicIndex }}
+          <span v-if="musicFileName">[{{ musicFileName }}]</span>
+        </dd>
+      </dl>
       <Suspense v-if="musicFileName">
         <MusicPlayer music-type="file" :musicId="musicFileName" />
         <template #fallback>Loading MusicPlayer</template>
@@ -27,35 +35,28 @@
         <h2>Branches</h2>
         <ol>
           <li v-for="(branch, i) in node.branches" :key="i">
-            <template v-if="editing">
-              <label>
-                controlmin
+            <dl>
+              <dt>controlmin</dt>
+              <dd v-if="editing">
                 <TextInput v-model="branch.controlmin" type="number" />
-              </label>
-              <br />
-              <label>
-                controlmax
+              </dd>
+              <dd v-else>{{ branch.controlmin }}</dd>
+              <dt>controlmax</dt>
+              <dd v-if="editing">
                 <TextInput v-model="branch.controlmax" type="number" />
-              </label>
-              <br />
-              <label>
-                destination
+              </dd>
+              <dd v-else>{{ branch.controlmax }}</dd>
+              <dt>destination</dt>
+              <dd v-if="editing">
                 <TextInput v-model="branch.dstnode" type="number" />
-              </label>
-            </template>
-            <template v-else>
-              <span>controlmin {{ branch.controlmin }}</span>
-              <br />
-              <span>controlmax {{ branch.controlmax }}</span>
-              <br />
-              <span>
-                destination
+              </dd>
+              <dd v-else>
                 <RouterLink
                   :to="{ query: createQuery('node', branch.dstnode) }"
                   >{{ branch.dstnode }}</RouterLink
                 >
-              </span>
-            </template>
+              </dd>
+            </dl>
           </li>
         </ol>
       </section>
@@ -89,8 +90,6 @@
         <h2>Other data</h2>
         <dl>
           <!--  trackID: 0, sectionID: 0, repeat: 0, routerID: 0, numbranches: 1, beats: 1, bars: 1, partID: 0, notes: 0 -->
-          <dt>Track</dt>
-          <dd>{{ node.trackID }}</dd>
           <dt>Section</dt>
           <dd>{{ node.sectionID }}</dd>
           <dt>Repeat</dt>
@@ -117,6 +116,7 @@ import { useCreateQuery } from '@/composables/useCreateQuery';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import EditableContent from '@/components/controls/EditableContent.vue';
 import MusicPlayer from '@/components/controls/MusicPlayer.vue';
+import PathMusicTrackSelectOption from '@/components/PathMusicTrackSelectOption.vue';
 import TextInput from '@/components/controls/TextInput.vue';
 
 const emit = defineEmits<{
@@ -189,9 +189,5 @@ dl {
   display: grid;
   grid-template-columns: max-content 1fr;
   grid-gap: 0 1em;
-}
-dt::before {
-  content: '>';
-  margin-right: 0.5em;
 }
 </style>
