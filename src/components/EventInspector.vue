@@ -34,7 +34,7 @@ import { copyEvent, modelKey } from '@/model';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import EventActions from '@/components/EventActions.vue';
 import EditableContent from '@/components/controls/EditableContent.vue';
-import TextInput from './controls/TextInput.vue';
+import TextInput from '@/components/controls/TextInput.vue';
 
 const emit = defineEmits<{
   (type: 'wantFocus'): void;
