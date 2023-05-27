@@ -276,7 +276,14 @@ export function copyEvent(event: Immutable<PathMusicEvent>) {
 }
 
 export function copyVariables(variables: Immutable<[string, number][]>) {
-  return variables.map((v) => [...v] as [string, number]);
+  return variables.map((v) => {
+    const name = v[0] as string;
+    const value = v[1] as number;
+    return [name.slice(0, Math.min(15, name.length)), value] as [
+      string,
+      number
+    ];
+  });
 }
 
 export interface Model {
