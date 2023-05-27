@@ -5,12 +5,17 @@
         lowest
         <TextInput type="number" v-model="lowest" />
       </label>
-      <label>
-        <TextInput type="number" :disabled="useRandom" v-model="millisecs" />ms
+      <label v-if="typeof millisecs === 'number'">
+        <TextInput type="number" v-model="millisecs" />ms
       </label>
+      <SelectOption
+        v-else
+        :choices="WaitTimeSpecialValues"
+        v-model="millisecs"
+      />
       <laebl>
-        <input type="checkbox" v-model="useRandom" />
-        time to next node
+        <input type="checkbox" v-model="isSpecial" />
+        Special
       </laebl>
     </template>
     <template v-else>
@@ -24,8 +29,9 @@
 </template>
 <script setup lang="ts">
 import { computed } from 'vue';
-import { type WaitTimeAction } from '@/model';
+import { type WaitTimeAction, WaitTimeSpecialValues } from '@/model';
 import { useFieldWrapper } from '@/composables/useFieldWrappers';
+import SelectOption from '@/components/controls/SelectOption.vue';
 import TextInput from '@/components/controls/TextInput.vue';
 
 const props = defineProps<{
@@ -39,11 +45,18 @@ const emit = defineEmits<{
 }>();
 
 const { lowest, millisecs } = useFieldWrapper(props, emit);
-const useRandom = computed({
-  get: () => millisecs.value === 'PATH_TIMETONEXTNODE',
+const isSpecial = computed({
+  get: () =>
+    typeof millisecs.value !== 'number' &&
+    WaitTimeSpecialValues.includes(millisecs.value),
   set: (value) => {
     if (value) {
-      millisecs.value = 'PATH_TIMETONEXTNODE';
+      if (
+        typeof millisecs.value === 'number' ||
+        !WaitTimeSpecialValues.includes(millisecs.value)
+      ) {
+        millisecs.value = WaitTimeSpecialValues[0];
+      }
     } else {
       millisecs.value = lowest.value;
     }

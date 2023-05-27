@@ -70,6 +70,14 @@ export type Comparison = (typeof Comparisons)[number];
 export const Operators = ['+=', '-=', '*=', '/=', '%='] as const;
 export type Operator = (typeof Operators)[number];
 
+
+export const WaitTimeSpecialValues = [
+  'PATH_TIMETONEXTNODE',
+  'PATH_TIMETONEXTBEAT',
+  'PATH_TIMETONEXTBAR',
+] as const;
+export type WaitTimeSpecialValue = (typeof WaitTimeSpecialValues)[number];
+
 export const FadeTypes = [
   'PATH_FADE_LINEAR',
   'PATH_FADE_EQPOWER',
@@ -128,7 +136,7 @@ export interface ElseAction extends PathMusicConditionAction {
 export interface WaitTimeAction extends BasePathMusicAction {
   type: PathMusicActionType.WaitTime;
   lowest: number;
-  millisecs: number | 'PATH_TIMETONEXTNODE';
+  millisecs: number | WaitTimeSpecialValue;
 }
 
 export interface BranchToAction extends BasePathMusicAction {

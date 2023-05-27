@@ -3,12 +3,13 @@ import {
   type PathMusicNode,
   type PathMusicBranch,
   type PathMusicEvent,
-  PathMusicActionType,
   type PathMusicAction,
+  type FadeType,
+  PathMusicActionType,
   Comparisons,
   Operators,
   FadeTypes,
-  type FadeType,
+  WaitTimeSpecialValues,
 } from '@/model';
 import type { Immutable } from '@/immutable';
 
@@ -217,6 +218,19 @@ event: {
     return result;
   }
 
+  function parseActionNumberOrSpecialValue<
+    SpecialValues extends readonly string[]
+  >(rawValue: string, specialValues: SpecialValues) {
+    if (specialValues.includes(rawValue)) {
+      return rawValue as SpecialValues[number];
+    }
+    const value = parseInt(rawValue);
+    if (isNaN(value)) {
+      throw new Error(`Expected number or special value, got ${rawValue}`);
+    }
+    return value;
+  }
+
   enum ParseState {
     None,
     Vars,
@@ -368,10 +382,10 @@ event: {
           actionsStack[actionsStack.length - 1].push({
             type: PathMusicActionType.WaitTime,
             lowest: getArg.number('lowest', 0),
-            millisecs:
-              millisecs === 'PATH_TIMETONEXTNODE'
-                ? millisecs
-                : Number(millisecs),
+            millisecs: parseActionNumberOrSpecialValue(
+              millisecs,
+              WaitTimeSpecialValues
+            ),
             track: getTrackId(comment),
           });
           continue;
@@ -412,7 +426,9 @@ event: {
           actionsStack[actionsStack.length - 1].push({
             type: PathMusicActionType.SetValue,
             left,
-            right: right === 'PATH_RANDOMSHORT' ? right : Number(right),
+            right: parseActionNumberOrSpecialValue(right, [
+              'PATH_RANDOMSHORT',
+            ] as const),
             track: getTrackId(comment),
           });
           continue;
