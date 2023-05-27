@@ -33,8 +33,9 @@
       </Suspense>
       <section>
         <h2>Branches</h2>
+        <button v-if="editing" @click="addBranch">Add</button>
         <ol>
-          <li v-for="(branch, i) in node.branches" :key="i">
+          <li v-for="(branch, i) in node.branches" :key="i" class="branch-item">
             <dl>
               <dt>controlmin</dt>
               <dd v-if="editing">
@@ -57,6 +58,7 @@
                 >
               </dd>
             </dl>
+            <button @click="removeBranch(i)">Remove</button>
           </li>
         </ol>
       </section>
@@ -158,6 +160,12 @@ const editing = ref(false);
 function newNode() {
   currentNodeId.value = model.value.addNode(-1, 0);
 }
+function addBranch() {
+  node?.value?.branches.push({ controlmin: 0, controlmax: 127, dstnode: -1 });
+}
+function removeBranch(index: number) {
+  node?.value?.branches.splice(index, 1);
+}
 function ok() {
   if (node.value) {
     model.value.setNode(node.value);
@@ -186,8 +194,15 @@ hr {
 }
 
 dl {
+  grid-row: span 2;
   display: grid;
   grid-template-columns: max-content 1fr;
   grid-gap: 0 1em;
+}
+
+.branch-item {
+  display: grid;
+  grid-template-columns: min-content min-content;
+  grid-template-rows: min-content 1fr;
 }
 </style>
