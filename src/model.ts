@@ -304,6 +304,9 @@ export interface Model {
   getSourceNodesByRouters(id: number): Immutable<PathMusicNode>[];
   getNodeAssociatedEvents(id: number): Immutable<PathMusicEvent>[];
   getBranchDestinationNodes(id: number): Immutable<PathMusicNode>[];
+  getSpecialValueAssociatedEvents(
+    specialValue: string
+  ): Immutable<PathMusicEvent>[];
   getVariableAssociatedEvents(name: string): Immutable<PathMusicEvent>[];
 }
 
@@ -372,9 +375,18 @@ export function createModel(
     return results;
   });
   const eventsFromVariables = computed(() => {
-    const results: Record<string, PathMusicEvent[]> = {};
+    const namedVariables: Record<string, PathMusicEvent[]> = {};
+    const specialValues: Record<string, PathMusicEvent[]> = {};
     const tryAddEvent = (key: string, event: PathMusicEvent) => {
-      const [, variable] = /vars\['(.*)'\]/.exec(key) ?? [];
+      let results;
+      let variable;
+      if (key.startsWith('PATH_')) {
+        results = specialValues;
+        variable = key;
+      } else {
+        results = namedVariables;
+        [, variable] = /vars\['(.*)'\]/.exec(key) ?? [];
+      }
       if (!variable) {
         return;
       }
@@ -406,7 +418,7 @@ export function createModel(
         }
       }
     }
-    return results;
+    return { namedVariables, specialValues };
   });
   return {
     data: model,
@@ -464,7 +476,9 @@ export function createModel(
         .map(({ dstnode }) => model.nodes[dstnode])
         .filter((n) => !!n),
     getVariableAssociatedEvents: (name) =>
-      eventsFromVariables.value[name] ?? [],
+      eventsFromVariables.value.namedVariables[name] ?? [],
+    getSpecialValueAssociatedEvents: (specialValue) =>
+      eventsFromVariables.value.specialValues[specialValue] ?? [],
   };
 }
 

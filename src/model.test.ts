@@ -108,12 +108,24 @@ test('modelVariableLookupReal', () => {
               `Variable ${leftMatch[1]}'s accociated events should contain ${event.name}`
             ).toContain(event);
           }
+          if (action.left.startsWith('PATH_')) {
+            expect(
+              model.getSpecialValueAssociatedEvents(action.left),
+              `Special Value ${action.left}'s accociated events should contain ${event.name}`
+            ).toContain(event);
+          }
           if (typeof action.right === 'string') {
             const rightMatch = regex.exec(action.right);
             if (rightMatch) {
               expect(
                 model.getVariableAssociatedEvents(rightMatch[1]),
                 `Variable ${rightMatch[1]}'s accociated events should contain ${event.name}`
+              ).toContain(event);
+            }
+            if (action.right.startsWith('PATH_')) {
+              expect(
+                model.getSpecialValueAssociatedEvents(action.right),
+                `Special Value ${action.right}'s accociated events should contain ${event.name}`
               ).toContain(event);
             }
           }
