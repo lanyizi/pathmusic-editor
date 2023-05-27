@@ -1,5 +1,21 @@
 <template>
   <div>
+    <h2>Builtin Variables</h2>
+    <ul>
+      <li v-for="(name, i) in RecognizedBuiltinVariables" :key="i">
+        <span class="variable-name">{{ name }}</span>
+        <h2>Associated Events</h2>
+        <ul>
+          <li v-for="event in specialValueAssociatedEvents[i]" :key="event.id">
+            <router-link :to="{ query: { event: event.id } }">
+              {{ event.name }}
+            </router-link>
+          </li>
+          <li v-if="!specialValueAssociatedEvents[i].length">None</li>
+        </ul>
+      </li>
+    </ul>
+    <h2>Named Vairbales</h2>
     <EditableContent
       :editing="editing"
       @update:editing="editing = $event"
@@ -31,8 +47,22 @@
 </template>
 <script setup lang="ts">
 import { computed, inject, ref, watch } from 'vue';
-import { copyVariables, modelKey } from '@/model';
+import {
+  SetValueSpecialLeftValues,
+  WaitTimeSpecialValues,
+  copyVariables,
+  modelKey,
+} from '@/model';
 import EditableContent from './controls/EditableContent.vue';
+
+const RecognizedBuiltinVariables = ['PATH_RANDOMSHORT']
+  .concat(SetValueSpecialLeftValues)
+  .concat(WaitTimeSpecialValues);
+const specialValueAssociatedEvents = computed(() => {
+  return RecognizedBuiltinVariables.map((name) => {
+    return model.value.getSpecialValueAssociatedEvents(name);
+  });
+});
 
 const model = inject(modelKey)!;
 if (!model) {
