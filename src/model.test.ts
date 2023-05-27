@@ -1,6 +1,7 @@
 import {
   createModel,
   createEventAction,
+  countEventActions,
   PathMusicActionType,
   type PathMusicAction,
   type PathMusicEvent,
@@ -317,4 +318,72 @@ test('createEventAction', () => {
   expect(
     dumpAction(createEventAction(PathMusicActionType.WaitTime, model))
   ).toEqual(`wait(lowest=0, millisecs=0) #0`);
+});
+
+test('countEventActions', () => {
+  const track = {
+    path: 'track.mus',
+    startingsample: 0,
+    numsubbanks: 0,
+    purgemode: 0,
+    muschecksum: 0,
+    maxaram: 0,
+    maxmram: 0,
+  };
+  const model = createModel([track], [], [], [['player', 0]], []);
+  const event = model.addEvent({
+    name: 'Test_0x1',
+    id: 1,
+    actions: [
+      {
+        type: PathMusicActionType.BranchTo,
+        node: 0,
+        offsection: 0,
+        immediate: false,
+        track: 0,
+      },
+      {
+        type: PathMusicActionType.If,
+        left: 'x',
+        comparison: '==',
+        right: 1,
+        actions: [
+          {
+            type: PathMusicActionType.If,
+            left: 'y',
+            comparison: '==',
+            right: 2,
+            actions: [
+              {
+                type: PathMusicActionType.BranchTo,
+                node: 1,
+                offsection: 0,
+                immediate: false,
+                track: 0,
+              },
+            ],
+            track: 0,
+          },
+          {
+            type: PathMusicActionType.ElseIf,
+            left: 'y',
+            comparison: '==',
+            right: 3,
+            actions: [
+              {
+                type: PathMusicActionType.BranchTo,
+                node: 2,
+                offsection: 0,
+                immediate: false,
+                track: 0,
+              },
+            ],
+            track: 0,
+          },
+        ],
+        track: 0,
+      },
+    ],
+  });
+  expect(countEventActions(event)).toEqual(8);
 });

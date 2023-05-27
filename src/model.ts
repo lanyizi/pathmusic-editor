@@ -468,4 +468,20 @@ export function createModel(
   };
 }
 
+export function countEventActions(event: Immutable<PathMusicEvent>) {
+  let count = 0;
+  const actionStack = [...event.actions];
+  while (actionStack.length > 0) {
+    const action = actionStack.pop()!;
+    ++count;
+    if ('actions' in action) {
+      actionStack.push(...action.actions);
+    }
+    if (action.type === PathMusicActionType.If) {
+      ++count; // for end if
+    }
+  }
+  return count;
+}
+
 export const modelKey = Symbol('model') as InjectionKey<Ref<Model>>;
