@@ -1,7 +1,7 @@
 <template>
   <div>
     <template v-if="editing">
-      <TextInput type="text" v-model="left" />
+      <EventVariableSelectOption :allowSpecialValues="false" v-model="left" />
       <SelectOption :choices="Operators" v-model="operator"></SelectOption>
       <TextInput type="number" v-model="right" />
     </template>
@@ -17,6 +17,7 @@ import { Operators, type CalculateAction } from '@/model';
 import { useFieldWrapper } from '@/composables/useFieldWrappers';
 import SelectOption from '@/components/controls/SelectOption.vue';
 import TextInput from '@/components/controls/TextInput.vue';
+import EventVariableSelectOption from '@/components/EventVariableSelectOption.vue';
 
 const props = defineProps<{
   modelValue: CalculateAction;

@@ -1,7 +1,7 @@
 <template>
   <div>
     <template v-if="editing">
-      <TextInput type="text" v-model="left" />
+      <EventVariableSelectOption allowSpecialValues v-model="left" />
       =
       <TextInput type="number" :disabled="useRandom" v-model="right" />
       <label>
@@ -21,6 +21,7 @@ import { computed } from 'vue';
 import { type SetValueAction } from '@/model';
 import { useFieldWrapper } from '@/composables/useFieldWrappers';
 import TextInput from '@/components/controls/TextInput.vue';
+import EventVariableSelectOption from '@/components/EventVariableSelectOption.vue';
 
 const props = defineProps<{
   modelValue: SetValueAction;

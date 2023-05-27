@@ -70,6 +70,10 @@ export type Comparison = (typeof Comparisons)[number];
 export const Operators = ['+=', '-=', '*=', '/=', '%='] as const;
 export type Operator = (typeof Operators)[number];
 
+export const SetValueSpecialLeftValues = [
+  'PATH_VOLUME',
+  'PATH_CONTROLLER',
+] as const;
 
 export const WaitTimeSpecialValues = [
   'PATH_TIMETONEXTNODE',

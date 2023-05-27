@@ -1,7 +1,7 @@
 <template>
   <div>
     <template v-if="editing">
-      <TextInput type="text" v-model="left" />
+      <EventVariableSelectOption :allowSpecialValues="false" v-model="left" />
       <SelectOption :choices="Comparisons" v-model="comparison"></SelectOption>
       <TextInput type="number" v-model="right" />
     </template>
@@ -17,6 +17,7 @@ import { Comparisons, type ElseIfAction, type IfAction } from '@/model';
 import { useFieldWrapper } from '@/composables/useFieldWrappers';
 import SelectOption from '@/components/controls/SelectOption.vue';
 import TextInput from '@/components/controls/TextInput.vue';
+import EventVariableSelectOption from '@/components/EventVariableSelectOption.vue';
 
 type ConditionCheck = IfAction | ElseIfAction;
 const props = defineProps<{
