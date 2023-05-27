@@ -30,6 +30,10 @@
       </dl>
       <dt>Id</dt>
       <dl>{{ event.id }}</dl>
+      <dt>Action Count</dt>
+      <dl :class="{ 'action-count-warning': actionCount >= 255 }">
+        {{ actionCount }} / 255
+      </dl>
     </dl>
     <EventActions
       :editing="editing"
@@ -40,7 +44,7 @@
 </template>
 <script setup lang="ts">
 import { computed, inject, ref, watch } from 'vue';
-import { copyEvent, modelKey } from '@/model';
+import { copyEvent, countEventActions, modelKey } from '@/model';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import EventActions from '@/components/EventActions.vue';
 import EditableContent from '@/components/controls/EditableContent.vue';
@@ -83,6 +87,8 @@ const trackColors = computed(() => {
   }
   return colors;
 });
+
+const actionCount = computed(() => countEventActions(event.value!));
 
 watch(
   [model, currentEventId],
@@ -139,5 +145,8 @@ dd {
 }
 * {
   white-space: nowrap;
+}
+.action-count-warning {
+  color: red;
 }
 </style>
