@@ -249,6 +249,9 @@ event: {
   const actionsStack: PathMusicAction[][] = [];
   for (let i = 0; i < lines.length; ++i) {
     const line = lines[i];
+    if (line.trim().length === 0) {
+      continue;
+    }
     switch (state) {
       case ParseState.None:
         if (line.startsWith('vars:')) {
