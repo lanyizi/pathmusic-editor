@@ -35,8 +35,19 @@
         <h2>Branches</h2>
         <button v-if="editing" @click="addBranch">Add</button>
         <ol>
-          <li v-for="(branch, i) in node.branches" :key="i" class="branch-item">
+          <li v-for="(branch, i) in node.branches" :key="i">
             <dl>
+              <dt>destination</dt>
+              <dd v-if="editing">
+                <TextInput v-model="branch.dstnode" type="number" />
+                <button @click="removeBranch(i)">Remove</button>
+              </dd>
+              <dd v-else>
+                <RouterLink
+                  :to="{ query: createQuery('node', branch.dstnode) }"
+                  >{{ branch.dstnode }}</RouterLink
+                >
+              </dd>
               <dt>controlmin</dt>
               <dd v-if="editing">
                 <TextInput v-model="branch.controlmin" type="number" />
@@ -47,18 +58,7 @@
                 <TextInput v-model="branch.controlmax" type="number" />
               </dd>
               <dd v-else>{{ branch.controlmax }}</dd>
-              <dt>destination</dt>
-              <dd v-if="editing">
-                <TextInput v-model="branch.dstnode" type="number" />
-              </dd>
-              <dd v-else>
-                <RouterLink
-                  :to="{ query: createQuery('node', branch.dstnode) }"
-                  >{{ branch.dstnode }}</RouterLink
-                >
-              </dd>
             </dl>
-            <button @click="removeBranch(i)">Remove</button>
           </li>
         </ol>
       </section>
@@ -198,11 +198,5 @@ dl {
   display: grid;
   grid-template-columns: max-content 1fr;
   grid-gap: 0 1em;
-}
-
-.branch-item {
-  display: grid;
-  grid-template-columns: min-content min-content;
-  grid-template-rows: min-content 1fr;
 }
 </style>
