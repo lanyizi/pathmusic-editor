@@ -248,8 +248,8 @@ event: {
   let state = ParseState.None;
   const actionsStack: PathMusicAction[][] = [];
   for (let i = 0; i < lines.length; ++i) {
-    const line = lines[i];
-    if (line.trim().length === 0) {
+    const line = lines[i].trim();
+    if (line.length === 0) {
       continue;
     }
     switch (state) {
@@ -283,11 +283,11 @@ event: {
           state = ParseState.EndEvent;
           continue;
         }
-        if (line.startsWith('	actions:[')) {
+        if (line.startsWith('actions:[')) {
           state = ParseState.Actions;
           continue;
         }
-        if (line.startsWith('	eventID:')) {
+        if (line.startsWith('eventID:')) {
           const eventID = line.split(':')[1].trim().replace(/,$/, '');
           const actions: PathMusicAction[] = [];
           result.events.push({
@@ -481,7 +481,8 @@ export function dumpEvents(
       const type = source.actions[i].type;
       const next = source.actions[i + 1]?.type;
       const hasNoElseIf =
-        type === PathMusicActionType.If &&
+        (type === PathMusicActionType.If ||
+          type == PathMusicActionType.ElseIf) &&
         next !== PathMusicActionType.Else &&
         next !== PathMusicActionType.ElseIf;
       const nextIsEndIf = hasNoElseIf || type === PathMusicActionType.Else;

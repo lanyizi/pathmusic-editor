@@ -47,3 +47,45 @@ test('parseEvents', () => {
     .sort();
   expect(sortedDumped).toEqual(sortedOriginal);
 });
+
+test('parseEventActions20230528bug', () => {
+  const parsedTracks = parseTracks(tracks);
+  const { nodes } = parseNodesAndRoutes(nodesAndRoutes);
+  const event = `vars: {
+    },
+    event: {
+    eventID: PATH_EVENT_Corona_BGM_Submit_0xdddddd,
+    actions:[
+      if(vars['cor_inputstep']==2) #0
+      if(vars['cor_bgmtype']==1) #0
+      if(vars['cor_bgmgroup']<=1) #0
+      branchto(node=0, ofsection=-1, immediate=false) #0
+      else if(vars['cor_bgmgroup']==2) #0
+      branchto(node=1, ofsection=-1, immediate=false) #0
+      else if(vars['cor_bgmgroup']==3) #0
+      branchto(node=2, ofsection=-1, immediate=false) #0
+      else if(vars['cor_bgmgroup']==4) #0
+      branchto(node=3, ofsection=-1, immediate=false) #0
+      else if(vars['cor_bgmgroup']>=5) #0
+      branchto(node=4, ofsection=-1, immediate=false) #0
+      end if
+      end if
+      end if
+      vars['cor_inputstep']+=1 #0
+      vars['cor_input']=0 #0
+      vars['cor_set_ctrl']=0 #0
+    ],
+  },\n`;
+  const parsed = parseEvents(event, parsedTracks, nodes);
+  expect(
+    dumpEvents(parsed.variables, parsed.events)
+      .split('\n')
+      .map((l) => l.trim())
+      .join('\n')
+  ).toBe(
+    event
+      .split('\n')
+      .map((l) => l.trim())
+      .join('\n')
+  );
+});
