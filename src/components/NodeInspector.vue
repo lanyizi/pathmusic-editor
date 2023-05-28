@@ -165,7 +165,7 @@ function newNode() {
   currentNodeId.value = model.value.addNode(-1, 0);
 }
 function addBranch() {
-  node?.value?.branches.push({ controlmin: 0, controlmax: 127, dstnode: -1 });
+  node?.value?.branches.push({ controlmin: 0, controlmax: 127, dstnode: 0 });
 }
 function removeBranch(index: number) {
   node?.value?.branches.splice(index, 1);
