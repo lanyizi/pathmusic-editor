@@ -31,8 +31,8 @@
       <dt>Id</dt>
       <dl>{{ event.id }}</dl>
       <dt>Action Count</dt>
-      <dl :class="{ 'action-count-warning': actionCount >= 255 }">
-        {{ actionCount }} / 255
+      <dl>
+        <LimitedCount :current="actionCount" :errorThreshold="255" />
       </dl>
     </dl>
     <EventActions
@@ -48,6 +48,7 @@ import { copyEvent, countEventActions, modelKey } from '@/model';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import EventActions from '@/components/EventActions.vue';
 import EditableContent from '@/components/controls/EditableContent.vue';
+import LimitedCount from '@/components/controls/LimitedCount.vue';
 import TextInput from '@/components/controls/TextInput.vue';
 
 const emit = defineEmits<{
@@ -145,8 +146,5 @@ dd {
 }
 * {
   white-space: nowrap;
-}
-.action-count-warning {
-  color: red;
 }
 </style>

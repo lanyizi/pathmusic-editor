@@ -33,7 +33,10 @@
       </Suspense>
       <section>
         <h2>Branches</h2>
-        <button v-if="editing" @click="addBranch">Add</button>
+        <span class="branch-control">
+          <LimitedCount :current="node.branches.length" :errorThreshold="31" />
+          <button v-if="editing" @click="addBranch">Add</button>
+        </span>
         <ol>
           <li v-for="(branch, i) in node.branches" :key="i">
             <dl>
@@ -117,9 +120,10 @@ import { copyNode, modelKey } from '@/model';
 import { useCreateQuery } from '@/composables/useCreateQuery';
 import { useQueryNumberValue } from '@/composables/useQueryNumberValue';
 import EditableContent from '@/components/controls/EditableContent.vue';
+import LimitedCount from './controls/LimitedCount.vue';
 import MusicPlayer from '@/components/controls/MusicPlayer.vue';
-import TrackSelectOption from '@/components/TrackSelectOption.vue';
 import TextInput from '@/components/controls/TextInput.vue';
+import TrackSelectOption from '@/components/TrackSelectOption.vue';
 
 const emit = defineEmits<{
   (type: 'wantFocus'): void;
@@ -198,5 +202,11 @@ dl {
   display: grid;
   grid-template-columns: max-content 1fr;
   grid-gap: 0 1em;
+}
+
+.branch-control {
+  display: flex;
+  align-items: center;
+  gap: 1em;
 }
 </style>
