@@ -109,8 +109,8 @@ const mapComponentType: Partial<Record<PathMusicActionType, Component>> = {
   [PathMusicActionType.SetValue]: SetValue,
   [PathMusicActionType.WaitTime]: WaitTime,
 };
-const mapComponentTypeKeys = Object.keys(
-  mapComponentType
+const mapComponentTypeKeys = Object.keys(mapComponentType).concat(
+  PathMusicActionType.Else
 ) as PathMusicActionType[];
 
 const addingNewAction = ref(false);
