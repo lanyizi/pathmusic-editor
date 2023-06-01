@@ -10,7 +10,12 @@
       @update:cancel="cancel"
     />
     <div class="sticky-container" v-for="(_, i) in texts" :key="i">
-      <p class="json" :contenteditable="editing" @input="setText(i, $el)">
+      <p
+        class="json"
+        :contenteditable="editing"
+        @input="setText(i, $event)"
+        @scroll.prevent
+      >
         {{ texts[i] }}
       </p>
     </div>
@@ -32,15 +37,19 @@ watch(audioPlayer.audioData, () => {
 function getSourceText() {
   return audioPlayer.audioData.value.map((x) => JSON.stringify(x, null, 2));
 }
-function setText(i: number, target: HTMLParagraphElement) {
+function setText(i: number, event: Event) {
+  const target = event.target as HTMLElement;
   texts.value[i] = target.innerText;
 }
 function submitJson() {
   try {
-    audioPlayer.audioData.value = texts.value.map((t) => JSON.parse(t));
+    audioPlayer.audioData.value = texts.value.map((t) =>
+      JSON.parse(t.replace(/\s/g, ''))
+    );
   } catch (e) {
     console.error(e);
     alert(e);
+    editing.value = true;
   }
 }
 function cancel() {
