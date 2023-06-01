@@ -3,9 +3,11 @@ import { provide, type InjectionKey, inject, type Ref, ref } from 'vue';
 import toWav from 'audiobuffer-to-wav';
 import { type PathMusicAudio } from '@/audio';
 import type { Immutable } from '@/immutable';
+import type { PathMusicNode } from '@/model';
 
 export interface AudioPlayer {
   audioData: Ref<Immutable<PathMusicAudio[][]>>;
+  initializeDefaultAudioData(nodes: PathMusicNode[]): void;
   getAudioNode(track: number, id: number): Promise<AudioBufferSourceNode>;
   downloadAudio(track: number, id: number): Promise<void>;
 }
@@ -126,6 +128,28 @@ export function provideAudioPlayer(fileStore: FileStore) {
 
   const value: AudioPlayer = {
     audioData,
+    initializeDefaultAudioData(nodes) {
+      const maximums: number[] = [];
+      for (const node of nodes) {
+        const max = maximums[node.trackID] ?? -1;
+        if (node.musicIndex > max) {
+          maximums[node.trackID] = node.musicIndex;
+        }
+      }
+      const defaultData: PathMusicAudio[][] = [];
+      for (const key in maximums) {
+        const i = parseInt(key);
+        defaultData[i] = [];
+        for (let j = 0; j < maximums[i]; ++j) {
+          defaultData[i][j] = {
+            type: 'file',
+            track: i,
+            id: j,
+          };
+        }
+      }
+      audioData.value = defaultData;
+    },
     async getAudioNode(track, id) {
       function createSilentNode() {
         const buffer = context.createBuffer(2, 1, targetSampleRate);
@@ -140,7 +164,7 @@ export function provideAudioPlayer(fileStore: FileStore) {
         }
         const audio = audioData.value[track][id];
         if (!audio) {
-          throw new Error(`Track ${track} not declared`);
+          throw new Error(`Track ${track} does not have audio ${id}`);
         }
         return await getAudioNode(audio);
       } catch (e) {
@@ -154,7 +178,7 @@ export function provideAudioPlayer(fileStore: FileStore) {
       }
       const audio = audioData.value[track][id];
       if (!audio) {
-        throw new Error(`Audio ${id} not declared`);
+        throw new Error(`Track ${track} does not have audio ${id}`);
       }
       return fileStore.saveBinary(`${id}.wav`, await generateWavFile(audio));
     },

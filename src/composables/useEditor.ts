@@ -1,4 +1,3 @@
-import type { PathMusicAudio } from '@/audio';
 import { provideAudioPlayer } from '@/audio-player';
 import { provideFileStore } from '@/file-store';
 import type { Immutable } from '@/immutable';
@@ -33,7 +32,7 @@ export function useEditor() {
 
   // for discarding changes and reset to original state
   // back to when the files are loaded
-  const originalData = ref<[string, string, string] | null>(null);
+  const originalData = ref<[string, string, string, string] | null>(null);
   const loading = ref(false);
   const fileAvailable = ref(false);
 
@@ -56,12 +55,11 @@ export function useEditor() {
       const rawTracks = await fileStore.loadText('tracks.txt');
       const rawNodes = await fileStore.loadText('nodes.txt');
       const rawEvents = await fileStore.loadText('events.txt');
+      const rawAudio = await fileStore.loadText('audio.txt');
       const tracks = parseTracks(rawTracks);
       const { nodes, routes } = parseNodesAndRoutes(rawNodes);
       const { events, variables } = parseEvents(rawEvents, tracks, nodes);
-      model.value = createModel(tracks, nodes, events, variables, routes);
-      originalData.value = [rawTracks, rawNodes, rawEvents];
-      const rawAudio = await fileStore.loadText('audio.txt');
+
       try {
         audioPlayer.audioData.value = JSON.parse(rawAudio);
       } catch (e) {
@@ -74,26 +72,11 @@ export function useEditor() {
         }
       }
       if (audioPlayer.audioData.value.length == 0) {
-        const maximums: number[] = [];
-        for (const node of nodes) {
-          const max = maximums[node.trackID] ?? -1;
-          if (node.musicIndex > max) {
-            maximums[node.trackID] = node.musicIndex;
-          }
-        }
-        const audioData: PathMusicAudio[][] = [];
-        for (let i = 0; i < tracks.length; ++i) {
-          audioData[i] = [];
-          for (let j = 0; j < maximums[i]; ++j) {
-            audioData[i][j] = {
-              type: 'file',
-              track: i,
-              id: j,
-            };
-          }
-        }
-        audioPlayer.audioData.value = audioData;
+        audioPlayer.initializeDefaultAudioData(nodes);
       }
+
+      model.value = createModel(tracks, nodes, events, variables, routes);
+      originalData.value = [rawTracks, rawNodes, rawEvents, rawAudio];
     } catch (e) {
       console.error(e);
       alert(`Failed to load files: ${e}`);
@@ -113,15 +96,13 @@ export function useEditor() {
     const rawEvents = dumpEvents(variables, events);
     const rawNodes = dumpNodesAndRoutes(nodes, routers);
     const rawTracks = dumpTracks(tracks);
+    const rawAudio = JSON.stringify(audioPlayer.audioData.value);
     const ra3MusicHeader = dumpRa3MusicHeader(tracks, events);
-    originalData.value = [rawTracks, rawNodes, rawEvents];
+    originalData.value = [rawTracks, rawNodes, rawEvents, rawAudio];
     await fileStore.saveText('events.txt', rawEvents);
     await fileStore.saveText('nodes.txt', rawNodes);
     await fileStore.saveText('tracks.txt', rawTracks);
-    await fileStore.saveText(
-      'audio.txt',
-      JSON.stringify(audioPlayer.audioData.value)
-    );
+    await fileStore.saveText('audio.txt', rawAudio);
     await fileStore.saveText('ra3music/pc/RA3Music.0.h', ra3MusicHeader);
   }
 
@@ -131,10 +112,11 @@ export function useEditor() {
     }
     model.value = createModel([], [], [], [], []);
     await nextTick();
-    const [rawTracks, rawNodes, rawEvents] = originalData.value;
+    const [rawTracks, rawNodes, rawEvents, rawAudio] = originalData.value;
     const tracks = parseTracks(rawTracks);
     const { nodes, routes } = parseNodesAndRoutes(rawNodes);
     const { events, variables } = parseEvents(rawEvents, tracks, nodes);
+    audioPlayer.audioData.value = JSON.parse(rawAudio);
     model.value = createModel(tracks, nodes, events, variables, routes);
   }
 
