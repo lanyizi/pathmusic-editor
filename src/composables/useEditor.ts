@@ -1,3 +1,4 @@
+import type { PathMusicAudio } from '@/audio';
 import { provideAudioPlayer } from '@/audio-player';
 import { provideFileStore } from '@/file-store';
 import type { Immutable } from '@/immutable';
@@ -15,7 +16,7 @@ import { computed, nextTick, provide, ref, watch } from 'vue';
 
 export function useEditor() {
   const fileStore = provideFileStore();
-  provideAudioPlayer(fileStore);
+  const audioPlayer = provideAudioPlayer(fileStore);
 
   const model = ref<Model>(createModel([], [], [], [], []));
   provide(modelKey, model);
@@ -58,9 +59,44 @@ export function useEditor() {
       const tracks = parseTracks(rawTracks);
       const { nodes, routes } = parseNodesAndRoutes(rawNodes);
       const { events, variables } = parseEvents(rawEvents, tracks, nodes);
-      console.log('loading actual model');
       model.value = createModel(tracks, nodes, events, variables, routes);
       originalData.value = [rawTracks, rawNodes, rawEvents];
+      const rawAudio = await fileStore.loadText('audio.txt');
+      try {
+        audioPlayer.audioData.value = JSON.parse(rawAudio);
+      } catch (e) {
+        if (
+          confirm(
+            `Failed to load audio data: ${e}\n\nWould you like to reset audio data?`
+          )
+        ) {
+          audioPlayer.audioData.value = [];
+        }
+      }
+      if (audioPlayer.audioData.value.length == 0) {
+        const maximums: number[] = [];
+        for (const node of nodes) {
+          const max = maximums[node.trackID] ?? -1;
+          if (node.musicIndex > max) {
+            maximums[node.trackID] = node.musicIndex;
+          }
+        }
+        const audioData: PathMusicAudio[][] = [];
+        for (let i = 0; i < tracks.length; ++i) {
+          audioData[i] = [];
+          for (let j = 0; j <= maximums[i]; ++j) {
+            audioData[i][j] = {
+              type: 'file',
+              track: i,
+              id: j,
+            };
+          }
+        }
+        audioPlayer.audioData.value = audioData;
+      }
+    } catch (e) {
+      console.error(e);
+      alert(`Failed to load files: ${e}`);
     } finally {
       loading.value = false;
     }
@@ -82,6 +118,10 @@ export function useEditor() {
     await fileStore.saveText('events.txt', rawEvents);
     await fileStore.saveText('nodes.txt', rawNodes);
     await fileStore.saveText('tracks.txt', rawTracks);
+    await fileStore.saveText(
+      'audio.txt',
+      JSON.stringify(audioPlayer.audioData.value)
+    );
     await fileStore.saveText('ra3music/pc/RA3Music.0.h', ra3MusicHeader);
   }
 

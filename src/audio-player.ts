@@ -1,12 +1,13 @@
 import { type FileStore } from '@/file-store';
-import { provide, type InjectionKey, inject } from 'vue';
+import { provide, type InjectionKey, inject, type Ref, ref } from 'vue';
 import toWav from 'audiobuffer-to-wav';
-import { parseAudioDescription, type PathMusicAudio } from '@/audio';
+import { type PathMusicAudio } from '@/audio';
+import type { Immutable } from '@/immutable';
 
 export interface AudioPlayer {
-  getAudio(category: 'file', audioId: string): Promise<AudioBufferSourceNode>;
-  declareAudio(id: string, description: string): void;
-  downloadAudio(id: string): Promise<void>;
+  audioData: Ref<Immutable<PathMusicAudio[][]>>;
+  getAudioNode(track: number, id: number): Promise<AudioBufferSourceNode>;
+  downloadAudio(track: number, id: number): Promise<void>;
 }
 
 const key = Symbol('AudioPlayer') as InjectionKey<AudioPlayer>;
@@ -14,30 +15,17 @@ const targetSampleRate = 44100;
 
 export function provideAudioPlayer(fileStore: FileStore) {
   const context = new AudioContext();
-  const audioStore: [string, PathMusicAudio][] = [];
+  const audioData = ref<PathMusicAudio[][]>([]);
 
-  async function getFileAudio(category: 'file', audioId: string) {
-    let sourceBuffer: ArrayBuffer;
-    if (category === 'file') {
-      sourceBuffer = await fileStore.loadBinary(audioId);
-    } else {
-      throw new Error(`Unknown audio id: ${audioId}`);
-    }
-    const decoded = await context.decodeAudioData(sourceBuffer);
-    const audioNode = context.createBufferSource();
-    audioNode.buffer = decoded;
-    audioNode.connect(context.destination);
-    return audioNode;
-  }
-
-  async function getAudio(audio: PathMusicAudio): Promise<AudioBuffer> {
+  async function getAudio(
+    audio: Immutable<PathMusicAudio>
+  ): Promise<AudioBuffer> {
     switch (audio.type) {
       case 'file': {
-        const sourceBuffer = await fileStore.loadBinary(audio.id);
+        const sourceBuffer = await fileStore.loadBinary(
+          `track${audio.track}.${audio.id}.mp3`
+        );
         const decoded = await context.decodeAudioData(sourceBuffer);
-        const audioNode = context.createBufferSource();
-        audioNode.buffer = decoded;
-        audioNode.connect(context.destination);
         const offlineContext = new OfflineAudioContext(
           2,
           decoded.duration * targetSampleRate,
@@ -45,7 +33,6 @@ export function provideAudioPlayer(fileStore: FileStore) {
         );
         const offlineAudioNode = offlineContext.createBufferSource();
         offlineAudioNode.buffer = decoded;
-        offlineAudioNode.connect(offlineContext.destination);
         const channelSplitter = new ChannelSplitterNode(offlineContext, {
           numberOfOutputs: 2,
         });
@@ -59,8 +46,7 @@ export function provideAudioPlayer(fileStore: FileStore) {
         channelSplitter.connect(channelMerger, 1, 1);
         // connect to destination
         channelMerger.connect(offlineContext.destination);
-        // render
-        audioNode.start();
+        offlineAudioNode.start();
         return await offlineContext.startRendering();
       }
       case 'slice': {
@@ -98,6 +84,7 @@ export function provideAudioPlayer(fileStore: FileStore) {
         gainNode.connect(offlineContext.destination);
         gainNode.gain.setValueAtTime(audio.startVolume, 0);
         gainNode.gain.linearRampToValueAtTime(audio.endVolume, source.duration);
+        offlineAudioNode.start();
         return await offlineContext.startRendering();
       }
       case 'mix': {
@@ -122,7 +109,7 @@ export function provideAudioPlayer(fileStore: FileStore) {
     }
   }
 
-  async function getAudioNode(audio: PathMusicAudio) {
+  async function getAudioNode(audio: Immutable<PathMusicAudio>) {
     const buffer = await getAudio(audio);
     const audioNode = context.createBufferSource();
     audioNode.buffer = buffer;
@@ -130,28 +117,46 @@ export function provideAudioPlayer(fileStore: FileStore) {
     return audioNode;
   }
 
-  async function generateWavFile(audio: PathMusicAudio): Promise<ArrayBuffer> {
+  async function generateWavFile(
+    audio: Immutable<PathMusicAudio>
+  ): Promise<ArrayBuffer> {
     const buffer = await getAudio(audio);
     return toWav(buffer);
   }
 
   const value: AudioPlayer = {
-    getAudio: getFileAudio,
-    declareAudio(id, description) {
-      const audio = parseAudioDescription(description);
-      const existing = audioStore.find((a) => a[0] === id);
-      if (existing) {
-        existing[1] = audio;
-      } else {
-        audioStore.push([id, audio]);
+    audioData,
+    async getAudioNode(track, id) {
+      function createSilentNode() {
+        const buffer = context.createBuffer(2, 1, targetSampleRate);
+        const audioNode = context.createBufferSource();
+        audioNode.buffer = buffer;
+        audioNode.connect(context.destination);
+        return audioNode;
+      }
+      try {
+        if (!audioData.value[track]) {
+          throw new Error(`Track ${track} not declared`);
+        }
+        const audio = audioData.value[track][id];
+        if (!audio) {
+          throw new Error(`Track ${track} not declared`);
+        }
+        return await getAudioNode(audio);
+      } catch (e) {
+        alert(`Failed to load audio: ${e}`);
+        return createSilentNode();
       }
     },
-    async downloadAudio(id) {
-      const audio = audioStore.find((a) => a[0] === id);
+    async downloadAudio(track, id) {
+      if (!audioData.value[track]) {
+        throw new Error(`Track ${track} not declared`);
+      }
+      const audio = audioData.value[track][id];
       if (!audio) {
         throw new Error(`Audio ${id} not declared`);
       }
-      return fileStore.saveBinary(`${id}.wav`, await generateWavFile(audio[1]));
+      return fileStore.saveBinary(`${id}.wav`, await generateWavFile(audio));
     },
   };
   provide(key, value);

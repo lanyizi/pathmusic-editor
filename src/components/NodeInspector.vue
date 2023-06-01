@@ -1,6 +1,7 @@
 <template>
   <!-- list properties of PathMusicNode -->
   <div>
+    <label><input type="checkbox" v-model="followNode" />Follow Node</label>
     <EditableContent
       :editing="editing"
       :hide-edit-button="!node"
@@ -24,11 +25,10 @@
         </dd>
         <dd v-else>
           {{ node.musicIndex }}
-          <span v-if="musicFileName">[{{ musicFileName }}]</span>
         </dd>
       </dl>
-      <Suspense v-if="musicFileName">
-        <MusicPlayer music-type="file" :musicId="musicFileName" />
+      <Suspense v-if="node.musicIndex > 0">
+        <MusicPlayer :track="node.trackID" :musicId="node.musicIndex - 1" />
         <template #fallback>Loading MusicPlayer</template>
       </Suspense>
       <section>
@@ -134,6 +134,7 @@ if (!model) {
   throw new Error('model is not provided');
 }
 const createQuery = useCreateQuery();
+const followNode = ref(false);
 const currentNodeId = useQueryNumberValue('node', -1);
 const sourcesByBranches = computed(() =>
   model.value.getSourceNodesByBranches(currentNodeId.value)
@@ -153,12 +154,6 @@ watch(
   },
   { immediate: true }
 );
-
-const musicFileName = computed(() => {
-  const trackIndex = node.value?.trackID ?? NaN;
-  const musicIndex = node.value?.musicIndex ?? NaN;
-  return musicIndex > 0 ? `track${trackIndex}.${musicIndex - 1}.mp3` : null;
-});
 
 const editing = ref(false);
 function newNode() {

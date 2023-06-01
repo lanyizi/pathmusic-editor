@@ -88,6 +88,14 @@ const layoutConfig: LayoutConfig = {
             },
             componentType: 'EventList',
           } as ComponentItemConfig,
+          {
+            type: 'component',
+            title: 'Music Text View',
+            header: {
+              show: 'top',
+            },
+            componentType: 'MusicTextView',
+          } as ComponentItemConfig,
         ],
         width: 55,
       },

@@ -18,12 +18,15 @@ import { onUnmounted } from 'vue';
 import { ref, watch } from 'vue';
 
 const props = defineProps<{
-  musicType: 'file';
-  musicId: string;
+  track: number;
+  musicId: number;
 }>();
-const { getAudio } = useAudioPlayer();
+const emit = defineEmits<{
+  (event: 'finished'): void;
+}>();
+const { getAudioNode } = useAudioPlayer();
 const musicSource = ref<AudioBufferSourceNode>(
-  await getAudio(props.musicType, props.musicId)
+  await getAudioNode(props.track, props.musicId)
 );
 const musicLength = computed(() => musicSource.value?.buffer?.duration ?? 1);
 const musicStartTime = ref(0);
@@ -48,10 +51,10 @@ const playingIntervalId = ref<number | NodeJS.Timer>();
 
 onUnmounted(() => stop());
 watch(
-  () => [props.musicType, props.musicId] as const,
-  async ([newType, newId]) => {
+  () => [props.track, props.musicId] as const,
+  async () => {
     stop();
-    musicSource.value = await getAudio(newType, newId);
+    musicSource.value = await getAudioNode(props.track, props.musicId);
     musicProgress.value = 0;
   }
 );
@@ -64,9 +67,12 @@ async function toggle() {
 }
 async function play(offset: number) {
   stop();
-  musicSource.value = await getAudio(props.musicType, props.musicId);
+  musicSource.value = await getAudioNode(props.track, props.musicId);
   musicSource.value.loop = false;
-  musicSource.value.onended = () => stop();
+  musicSource.value.onended = () => {
+    stop();
+    emit('finished');
+  };
   musicStartTime.value = musicSource.value.context.currentTime;
   musicStartOffset.value = offset;
   playingIntervalId.value = setInterval(updateProgress, 100);
