@@ -84,7 +84,7 @@ export function useEditor() {
         const audioData: PathMusicAudio[][] = [];
         for (let i = 0; i < tracks.length; ++i) {
           audioData[i] = [];
-          for (let j = 0; j <= maximums[i]; ++j) {
+          for (let j = 0; j < maximums[i]; ++j) {
             audioData[i][j] = {
               type: 'file',
               track: i,
