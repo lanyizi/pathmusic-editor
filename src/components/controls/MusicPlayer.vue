@@ -1,14 +1,17 @@
 <template>
-  <div class="music-player">
-    <button @click="toggle">Play/Stop</button>
-    <input
-      type="range"
-      min="0"
-      :max="musicLength"
-      step="0.1"
-      v-model="musicProgress"
-    />
-    <span>{{ musicProgress.toFixed(1) }} / {{ musicLength.toFixed(1) }}</span>
+  <div>
+    <div v-if="musicDescription">{{ musicDescription }}</div>
+    <div class="music-player">
+      <button @click="toggle">Play/Stop</button>
+      <input
+        type="range"
+        min="0"
+        :max="musicLength"
+        step="0.1"
+        v-model="musicProgress"
+      />
+      <span>{{ musicProgress.toFixed(1) }} / {{ musicLength.toFixed(1) }}</span>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
@@ -24,10 +27,17 @@ const props = defineProps<{
 const emit = defineEmits<{
   (event: 'finished'): void;
 }>();
-const { getAudioNode } = useAudioPlayer();
+const { getAudio, getAudioNode } = useAudioPlayer();
 const musicSource = ref<AudioBufferSourceNode>(
   await getAudioNode(props.track, props.musicId)
 );
+const musicDescription = computed(() => {
+  try {
+    return JSON.stringify(getAudio(props.track, props.musicId));
+  } catch (e) {
+    return undefined;
+  }
+});
 const musicLength = computed(() => musicSource.value?.buffer?.duration ?? 1);
 const musicStartTime = ref(0);
 const musicStartOffset = ref(0);
