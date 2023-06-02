@@ -104,6 +104,18 @@ export function useEditor() {
     await fileStore.saveText('tracks.txt', rawTracks);
     await fileStore.saveText('audio.txt', rawAudio);
     await fileStore.saveText('ra3music/pc/RA3Music.0.h', ra3MusicHeader);
+    // save WAV
+    for (let i = 0; i < audioPlayer.audioData.value.length; ++i) {
+      const audios = audioPlayer.audioData.value[i];
+      for (let j = 0; j < audios.length; ++j) {
+        const audio = audios[j];
+        if (audio.type == 'file') {
+          // already is a file
+          continue;
+        }
+        await audioPlayer.downloadAudio(i, j);
+      }
+    }
   }
 
   async function reset() {
