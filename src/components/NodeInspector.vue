@@ -1,7 +1,10 @@
 <template>
   <!-- list properties of PathMusicNode -->
   <div>
-    <label><input type="checkbox" v-model="followNode" />Follow Node</label>
+    <!--
+      To be implemented: automatically play the next node when the current node finishes
+      <label><input type="checkbox" v-model="followNode" />Follow Node</label>
+    -->
     <EditableContent
       :editing="editing"
       :hide-edit-button="!node"
@@ -134,7 +137,7 @@ if (!model) {
   throw new Error('model is not provided');
 }
 const createQuery = useCreateQuery();
-const followNode = ref(false);
+// const followNode = ref(false); TODO: automatically play the next node when the current node finishes
 const currentNodeId = useQueryNumberValue('node', -1);
 const sourcesByBranches = computed(() =>
   model.value.getSourceNodesByBranches(currentNodeId.value)
