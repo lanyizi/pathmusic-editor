@@ -1,7 +1,14 @@
 import { type FileStore } from '@/file-store';
-import { provide, type InjectionKey, inject, type Ref, ref } from 'vue';
+import {
+  provide,
+  type InjectionKey,
+  inject,
+  type Ref,
+  ref,
+  computed,
+} from 'vue';
 import toWav from 'audiobuffer-to-wav';
-import { type PathMusicAudio } from '@/audio';
+import { normalizeAudio, type PathMusicAudio } from '@/audio';
 import type { Immutable } from '@/immutable';
 import type { PathMusicNode } from '@/model';
 
@@ -18,7 +25,12 @@ const targetSampleRate = 44100;
 
 export function provideAudioPlayer(fileStore: FileStore) {
   const context = new AudioContext();
-  const audioData = ref<PathMusicAudio[][]>([]);
+  const actualAudioData = ref<PathMusicAudio[][]>([]);
+  const audioData = computed({
+    get: () => actualAudioData.value,
+    set: (value) =>
+      (actualAudioData.value = value.map((track) => track.map(normalizeAudio))),
+  });
 
   function getAudio(track: number, id: number) {
     if (!audioData.value[track]) {

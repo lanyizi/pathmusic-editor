@@ -29,6 +29,48 @@ export interface PathMusicAudioMix {
   sources: PathMusicAudio[];
 }
 
+export function normalizeAudio(
+  audio: Partial<Immutable<PathMusicAudio>> | undefined
+): PathMusicAudio {
+  const defaultAudio: PathMusicAudioFile = { type: 'file', track: 0, id: 0 };
+  if (typeof audio !== 'object' || audio === null) {
+    return defaultAudio;
+  }
+  const getNumber = (value: any) => (isNaN(Number(value)) ? 0 : Number(value));
+  switch (audio.type) {
+    case 'file':
+      return {
+        type: 'file',
+        track: getNumber(audio.track),
+        id: getNumber(audio.id),
+      };
+    case 'slice': {
+      const start = getNumber(audio.start);
+      const end = getNumber(audio.end);
+      return {
+        type: 'slice',
+        source: normalizeAudio(audio.source),
+        waitSecondsBeforeStart: getNumber(audio.waitSecondsBeforeStart),
+        start,
+        end: end < start ? start : end,
+      };
+    }
+    case 'volume':
+      return {
+        type: 'volume',
+        source: normalizeAudio(audio.source),
+        startVolume: getNumber(audio.startVolume),
+        endVolume: getNumber(audio.endVolume),
+      };
+    case 'mix':
+      return {
+        type: 'mix',
+        sources: audio.sources?.map(normalizeAudio) ?? [],
+      };
+  }
+  return defaultAudio;
+}
+
 export function copyPathMusicAudio<T extends PathMusicAudio>(
   audio: Immutable<T>
 ): T {

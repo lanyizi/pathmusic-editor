@@ -14,7 +14,7 @@
       <JsonEditorVue
         v-for="(_, i) in data"
         :key="i"
-        class="jse-theme-dark"
+        class="json jse-theme-dark"
         :readOnly="!editing"
         v-model="data[i]"
       />
@@ -57,5 +57,8 @@ function cancel() {
 .control {
   position: fixed;
   z-index: 100;
+}
+.json {
+  height: 70vh;
 }
 </style>
