@@ -9,43 +9,32 @@
       @update:ok="submitJson"
       @update:cancel="cancel"
     />
-    <div class="sticky-container" v-for="(_, i) in texts" :key="i">
-      <p
-        class="json"
-        :contenteditable="editing"
-        @input="setText(i, $event)"
-        @scroll.prevent
-      >
-        {{ texts[i] }}
-      </p>
+    <div class="sticky-container">
+      <JsonEditorVue v-for="(_, i) in data" :key="i" v-model="data[i]" />
     </div>
   </div>
 </template>
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import JsonEditorVue from 'json-editor-vue';
+import { copyPathMusicAudio } from '@/audio';
 import { useAudioPlayer } from '@/audio-player';
-import EditableContent from './controls/EditableContent.vue';
+import EditableContent from '@/components/controls/EditableContent.vue';
 
 const audioPlayer = useAudioPlayer();
 const editing = ref(false);
-const texts = ref(getSourceText());
+const data = ref(getAudioData());
 
 watch(audioPlayer.audioData, () => {
-  texts.value = getSourceText();
+  data.value = getAudioData();
 });
 
-function getSourceText() {
-  return audioPlayer.audioData.value.map((x) => JSON.stringify(x, null, 2));
-}
-function setText(i: number, event: Event) {
-  const target = event.target as HTMLElement;
-  texts.value[i] = target.innerText;
+function getAudioData() {
+  return audioPlayer.audioData.value.map((x) => x.map(copyPathMusicAudio));
 }
 function submitJson() {
   try {
-    audioPlayer.audioData.value = texts.value.map((t) =>
-      JSON.parse(t.replace(/\s/g, ''))
-    );
+    audioPlayer.audioData.value = data.value;
   } catch (e) {
     console.error(e);
     alert(e);
@@ -53,15 +42,11 @@ function submitJson() {
   }
 }
 function cancel() {
-  texts.value = getSourceText();
+  data.value = getAudioData();
 }
 </script>
 <style scoped>
 .control {
   position: fixed;
-}
-.json {
-  font-family: 'Cascadia Code', Consolas, monospace;
-  white-space: pre;
 }
 </style>

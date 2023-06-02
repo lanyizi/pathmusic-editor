@@ -15,6 +15,8 @@
   "dependencies": {
     "audiobuffer-to-wav": "^1.0.0",
     "golden-layout": "^2.6.0",
+    "json-editor-vue": "^0.10.6",
+    "vanilla-jsoneditor": "^0.17.4",
     "vue": "^3.3.2",
     "vue-router": "^4.2.0"
   },
