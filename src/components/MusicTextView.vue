@@ -9,13 +9,21 @@
       @update:ok="submitJson"
       @update:cancel="cancel"
     />
+    <br />
     <div class="sticky-container">
-      <JsonEditorVue v-for="(_, i) in data" :key="i" v-model="data[i]" />
+      <JsonEditorVue
+        v-for="(_, i) in data"
+        :key="i"
+        class="jse-theme-dark"
+        :readOnly="!editing"
+        v-model="data[i]"
+      />
     </div>
   </div>
 </template>
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import 'vanilla-jsoneditor/themes/jse-theme-dark.css';
 import JsonEditorVue from 'json-editor-vue';
 import { copyPathMusicAudio } from '@/audio';
 import { useAudioPlayer } from '@/audio-player';
@@ -48,5 +56,6 @@ function cancel() {
 <style scoped>
 .control {
   position: fixed;
+  z-index: 100;
 }
 </style>
