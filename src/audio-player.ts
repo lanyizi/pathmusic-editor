@@ -102,7 +102,6 @@ export function provideAudioPlayer(fileStore: FileStore) {
         );
         const offlineAudioNode = offlineContext.createBufferSource();
         offlineAudioNode.buffer = source;
-        offlineAudioNode.connect(offlineContext.destination);
         const gainNode = new GainNode(offlineContext, {
           gain: audio.startVolume,
         });
